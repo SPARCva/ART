@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+/* Quality floor: visible focus everywhere, on-brand, >=3:1 against mist/paper */
+:focus-visible {
+  outline: 3px solid #256b43;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect users who opt out of motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #20372b;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 8px 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* The paper-trail ledger line used by the advocacy timeline */
+.ledger {
+  position: relative;
+  padding-left: 2rem;
+}
+.ledger::before {
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom, #5c7263 0 6px, transparent 6px 12px
+  );
+}
