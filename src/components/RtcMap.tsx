@@ -111,7 +111,7 @@ export function RtcMap({ barriers }: { barriers: MapBarrier[] }) {
             <button
               key={p.id}
               type="button"
-              onClick={() => router.push(`/barrier/${p.id}`)}
+              onClick={() => router.push(`/barrier?id=${p.id}`)}
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
               className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-full ring-4 ${STATUS_RING[p.status] ?? "ring-s_documented"} h-9 w-9 bg-pine font-display text-base font-bold text-white shadow-md hover:bg-fern focus-visible:bg-fern`}
             >

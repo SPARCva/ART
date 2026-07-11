@@ -1,0 +1,28 @@
+name: Deploy /ART to sparcsolutions.org
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build:static
+      - name: Push static export into sparcwebsite/ART
+        env:
+          PUSH_TOKEN: ${{ secrets.SPARCWEBSITE_PUSH_TOKEN }}
+        run: |
+          git clone --depth 1 "https://x-access-token:${PUSH_TOKEN}@github.com/SPARCva/sparcwebsite" site
+          rm -rf site/ART && mkdir site/ART && cp -r out/* site/ART/
+          touch site/.nojekyll
+          cd site
+          git config user.name "art-deploy-bot"
+          git config user.email "grants@sparcsolutions.org"
+          git add -A
+          git diff --cached --quiet || git commit -m "Auto-deploy /ART from steps-toward-access@${GITHUB_SHA::7}"
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/SPARCva/sparcwebsite" HEAD:main

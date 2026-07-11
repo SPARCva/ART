@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useStaff } from "@/lib/auth";
 
@@ -19,8 +20,8 @@ type Submission = {
 type Photo = { id: string; src: string; alt: string; sort: number };
 type Party = { id: string; name: string };
 
-export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function ReviewInner() {
+  const id = useSearchParams().get("id") ?? "";
   const { session, staff, loading } = useStaff();
   const [sub, setSub] = useState<Submission | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -195,7 +196,7 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
             {sub.status === "merged" && sub.merged_location_id ? (
               <p className="mt-3 text-sm">
                 Merged into the record.{" "}
-                <Link href={`/barrier/${sub.merged_location_id}`} className="font-semibold text-fern underline underline-offset-4">
+                <Link href={`/barrier?id=${sub.merged_location_id}`} className="font-semibold text-fern underline underline-offset-4">
                   View the barrier
                 </Link>{" "}
                 (publish it from the record when it&rsquo;s ready).
@@ -284,5 +285,14 @@ function Shell({ children }: { children: React.ReactNode }) {
       </p>
       {children}
     </main>
+  );
+}
+
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<main id="main" className="mx-auto max-w-5xl px-5 py-10"><p role="status" className="text-moss">Loading…</p></main>}>
+      <ReviewInner />
+    </Suspense>
   );
 }

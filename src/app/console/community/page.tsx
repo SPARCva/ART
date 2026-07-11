@@ -89,7 +89,7 @@ export default function CommunityQueue() {
       });
       await supabase.from("access_public_reports")
         .update({ status: "taken_up", linked_location_id: loc.id }).eq("id", r.id);
-      router.push(`/console/record/${loc.id}`);
+      router.push(`/console/record?id=${loc.id}`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't take this up.");
       setBusyId(null);
@@ -159,7 +159,7 @@ export default function CommunityQueue() {
                   </>
                 )}
                 {r.status !== "new" && r.linked_location_id && (
-                  <Link href={`/console/record/${r.linked_location_id}`}
+                  <Link href={`/console/record?id=${r.linked_location_id}`}
                     className="rounded-lg border-2 border-fern px-4 py-2 text-sm font-semibold text-fern hover:bg-fern/10">
                     Open the barrier
                   </Link>

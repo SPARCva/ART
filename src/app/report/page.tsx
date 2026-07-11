@@ -160,7 +160,11 @@ Thank you for your time,
     setDrafting(true);
     setErr(null);
     try {
-      const r = await fetch("/ART/api/letter-assist", {
+      const assistBase =
+        typeof window !== "undefined" && window.location.hostname.endsWith("netlify.app")
+          ? ""
+          : "https://stepstowardaccess.netlify.app";
+      const r = await fetch(`${assistBase}/ART/api/letter-assist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

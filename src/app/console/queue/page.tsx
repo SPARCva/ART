@@ -65,7 +65,7 @@ export default function QueuePage() {
         <ul className="mt-6 space-y-4">
           {subs.map((s) => (
             <li key={s.id} className="rounded-xl border border-moss/30 bg-paper p-5 hover:border-fern">
-              <Link href={`/console/queue/${s.id}`} className="block">
+              <Link href={`/console/review?id=${s.id}`} className="block">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="rounded-full bg-fern/15 px-3 py-1 text-sm font-semibold text-pine">
                   {STATUS_LABEL[s.status] ?? s.status}
