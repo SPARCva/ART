@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { RtcMap } from "@/components/RtcMap";
-import { MapPicker } from "@/components/MapPicker";
 import type { MapPlace } from "@/components/RtcMap";
-import PLACES from "@/data/places.json";
 import { StatusBadge } from "@/components/StatusBadge";
 
 /** ONE page: the map of documented barriers, a form to add what you found,
@@ -131,7 +129,6 @@ export default function OnePage() {
         ) : (
           <RtcMap
             barriers={barriers}
-            places={PLACES as MapPlace[]}
             onPlacePick={(pl) => {
               setPlace(pl.addr ? `${pl.name}, ${pl.addr}` : pl.name);
               setSpot({ lat: pl.lat, lon: pl.lon });
@@ -201,7 +198,6 @@ export default function OnePage() {
                 placeholder="Business name, address, or landmark"
                 className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
             </div>
-            <MapPicker value={spot} onChange={setSpot} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="bname" className="block font-bold">Your name <span className="font-normal text-moss">(optional, never shown)</span></label>
