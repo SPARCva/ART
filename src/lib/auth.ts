@@ -59,7 +59,7 @@ export function useStaff() {
 export async function sendMagicLink(email: string) {
   const redirect =
     typeof window !== "undefined"
-      ? `${window.location.origin}/accessibility/console`
+      ? `${window.location.origin}/ART/console`
       : undefined;
   return supabase.auth.signInWithOtp({
     email,

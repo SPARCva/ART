@@ -102,7 +102,7 @@ export function RtcMap({ barriers }: { barriers: MapBarrier[] }) {
         <div className="relative" style={{ width: `${zoom * 100}%` }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/accessibility/rtc-basemap.svg"
+            src="/ART/rtc-basemap.svg"
             alt=""
             className="block w-full select-none"
             draggable={false}

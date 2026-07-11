@@ -6,20 +6,72 @@ import { supabase } from "@/lib/supabase";
 
 /**
  * Visitor tool: report a barrier in YOUR community and leave with a
- * ready-to-send letter. Nothing typed here is stored anywhere — the letter
+ * ready-to-send letter. The letter itself is never stored; the optional
+ * "Add it to SPARC's list" step files a report the team can act on.
  * leaves via the visitor's own email app, clipboard, or printer.
  */
 
-const BARRIER_TYPES = [
-  { id: "entrance", label: "Entrance or door", hint: "steps with no ramp, heavy doors, no automatic opener" },
-  { id: "path", label: "Path or sidewalk", hint: "broken pavement, no curb cuts, blocked routes" },
-  { id: "parking", label: "Parking", hint: "no accessible spaces, blocked access aisles" },
-  { id: "restroom", label: "Restroom", hint: "too small, no grab bars, out of service" },
-  { id: "counter", label: "Counter or service area", hint: "too high, no lowered section" },
-  { id: "signage", label: "Signs or information", hint: "no braille, hard to read, missing" },
-  { id: "digital", label: "Website or kiosk", hint: "can't be used with a screen reader or keyboard" },
-  { id: "other", label: "Something else", hint: "" },
+const BARRIER_GROUPS = [
+  {
+    group: "Getting there",
+    items: [
+      { id: "parking", label: "Parking", hint: "no accessible or van spaces, blocked access aisles, no curb ramp from the lot" },
+      { id: "dropoff", label: "Drop-off or passenger loading", hint: "nowhere level or safe to get out of a vehicle" },
+      { id: "path", label: "Sidewalk, path, or curb ramps", hint: "broken pavement, no curb cuts, obstacles, gravel, unshoveled snow or ice" },
+      { id: "transit", label: "Bus stop or transit access", hint: "stop unreachable by wheelchair, no announcements, no shelter access" },
+    ],
+  },
+  {
+    group: "Getting in",
+    items: [
+      { id: "entrance", label: "Entrance or steps", hint: "steps with no ramp, accessible entrance locked or around back" },
+      { id: "ramp", label: "Ramp problems", hint: "too steep, no handrails, no level landing, blocked" },
+      { id: "door", label: "Doors", hint: "too heavy, no automatic opener, opener broken, doorway too narrow" },
+    ],
+  },
+  {
+    group: "Getting around inside",
+    items: [
+      { id: "aisles", label: "Aisles and circulation", hint: "too narrow for a wheelchair or walker, blocked by displays or clutter" },
+      { id: "elevator", label: "Elevator or lift", hint: "none where needed, out of service, buttons unreachable, no braille" },
+      { id: "stairs", label: "Stairs", hint: "no handrails, no visual contrast on edges, only route is stairs" },
+      { id: "seating", label: "Seating and tables", hint: "no wheelchair seating, fixed booths only, no companion seating" },
+    ],
+  },
+  {
+    group: "Facilities",
+    items: [
+      { id: "restroom", label: "Restroom", hint: "stall too small, no grab bars, sink or dryer too high, accessible stall broken or used for storage" },
+      { id: "counter", label: "Counter or checkout", hint: "counter too high, no lowered section, card reader unreachable" },
+      { id: "fitting", label: "Fitting room or exam room", hint: "too small, no bench, no grab bars, equipment not adjustable" },
+    ],
+  },
+  {
+    group: "Information and communication",
+    items: [
+      { id: "signage", label: "Signs and wayfinding", hint: "no braille or raised letters, low contrast, missing or confusing" },
+      { id: "hearing", label: "Hearing access", hint: "no interpreter, no captioning, no hearing loop, staff won't write things down" },
+      { id: "vision", label: "Vision access", hint: "no large-print or braille menus, poor lighting, no audible signals" },
+      { id: "digital", label: "Website, app, or kiosk", hint: "can't be used with a screen reader or keyboard, online-only services with no alternative" },
+    ],
+  },
+  {
+    group: "People and policies",
+    items: [
+      { id: "service_animal", label: "Service animal refused", hint: "turned away or challenged beyond the two questions the law allows" },
+      { id: "staff", label: "Staff or policy problem", hint: "refused a reasonable accommodation, no assistance policy, told to come back with help" },
+      { id: "sensory", label: "Sensory environment", hint: "overwhelming noise, flashing or harsh lighting, no quieter option" },
+      { id: "temporary", label: "Temporary blockage", hint: "construction, displays, or parked items blocking the accessible route" },
+    ],
+  },
+  {
+    group: "",
+    items: [{ id: "other", label: "Something else", hint: "" }],
+  },
 ] as const;
+
+type BarrierType = { id: string; label: string; hint: string };
+const BARRIER_TYPES: BarrierType[] = BARRIER_GROUPS.flatMap((g) => [...g.items]);
 
 type Place = { display_name: string; lat: string; lon: string };
 
@@ -108,7 +160,7 @@ Thank you for your time,
     setDrafting(true);
     setErr(null);
     try {
-      const r = await fetch("/accessibility/api/letter-assist", {
+      const r = await fetch("/ART/api/letter-assist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -180,8 +232,11 @@ Thank you for your time,
           <h2 id="s1" className="font-display text-2xl font-semibold text-pine">1. What kind of barrier is it?</h2>
           <fieldset className="mt-4">
             <legend className="sr-only">Barrier type</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {BARRIER_TYPES.map((t) => (
+            {BARRIER_GROUPS.map((g) => (
+            <div key={g.group || "other"} className="mt-4 first:mt-0">
+              {g.group && <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-wider text-moss">{g.group}</h3>}
+              <div className="grid gap-2 sm:grid-cols-2">
+              {g.items.map((t) => (
                 <label
                   key={t.id}
                   className={`cursor-pointer rounded-xl border-2 p-3 ${type === t.id ? "border-fern bg-fern/10" : "border-moss/30 bg-paper hover:border-moss"}`}
@@ -198,7 +253,9 @@ Thank you for your time,
                   {t.hint && <span className="mt-0.5 block pl-6 text-sm text-moss">{t.hint}</span>}
                 </label>
               ))}
+              </div>
             </div>
+            ))}
           </fieldset>
 
           <label htmlFor="desc" className="mt-6 block font-bold">

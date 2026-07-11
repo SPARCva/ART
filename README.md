@@ -4,8 +4,8 @@ SPARC's Agents of Change accessibility advocacy app. Public record of
 barriers at Reston Town Center + the steps taken to call for change, plus a
 visitor tool that drafts advocacy letters for barriers anywhere.
 
-**Live at:** https://sparcsolutions.org/accessibility (proxied from the main
-site to this app's own Netlify deployment; `basePath: "/accessibility"`).
+**Live at:** https://sparcsolutions.org/ART (proxied from the main
+site to this app's own Netlify deployment; `basePath: "/ART"`).
 
 ## Stack
 - Next.js 15 (App Router) + TypeScript + Tailwind, Radix UI primitives
@@ -34,5 +34,5 @@ CI will fail PRs that introduce axe-core violations (Phase 4).
 ```bash
 npm install
 cp .env.example .env.local   # add ANTHROPIC_API_KEY for letter assist
-npm run dev                  # http://localhost:3000/accessibility
+npm run dev                  # http://localhost:3000/ART
 ```

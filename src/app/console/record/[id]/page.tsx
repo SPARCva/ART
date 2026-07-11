@@ -112,7 +112,7 @@ export default function BarrierEditor({ params }: { params: Promise<{ id: string
           .insert({ ...fields, created_by: staff!.email }).select("id").single();
         if (error) throw error;
         bid = data.id; setId(bid);
-        window.history.replaceState(null, "", `/accessibility/console/record/${bid}`);
+        window.history.replaceState(null, "", `/ART/console/record/${bid}`);
       } else {
         const { error } = await supabase.from("access_locations").update(fields).eq("id", bid);
         if (error) throw error;
@@ -221,7 +221,7 @@ export default function BarrierEditor({ params }: { params: Promise<{ id: string
             <p className="mt-1 text-sm text-moss">Click the map to place it, or type coordinates.</p>
             <div ref={mapRef} onClick={placePin} className="relative mt-3 cursor-crosshair overflow-hidden rounded-xl border border-moss/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/accessibility/rtc-basemap.svg" alt="" className="block w-full select-none" draggable={false} />
+              <img src="/ART/rtc-basemap.svg" alt="" className="block w-full select-none" draggable={false} />
               {pin && pin.x >= 0 && pin.x <= 100 && pin.y >= 0 && pin.y <= 100 && (
                 <span aria-hidden="true" style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
                   className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pine ring-4 ring-fern" />
