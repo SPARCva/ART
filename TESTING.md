@@ -31,3 +31,11 @@
 - [ ] mailto opens mail app with subject+body; Copy copies; Print renders
       the dated letter layout
 - [ ] Nothing typed appears in the database (spot-check tables)
+
+## Community reports (public intake)
+- [ ] Logged-out visitor files a report from /report step 4; confirmation shows
+- [ ] Report appears under Console → Community reports → New (badge counts)
+- [ ] "Take it up" creates a draft barrier with the description, location,
+      and a "Reported by the community" first step, and opens the editor
+- [ ] Anonymous users cannot read reports (private window: no data exposed)
+- [ ] Honeypot: filling the hidden "Website" field drops the submission

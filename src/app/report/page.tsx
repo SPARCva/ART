@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Visitor tool: report a barrier in YOUR community and leave with a
@@ -40,6 +41,13 @@ export default function ReportPage() {
   const [drafting, setDrafting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // "add to SPARC's list" path
+  const [repName, setRepName] = useState("");
+  const [repEmail, setRepEmail] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot — humans never see it
+  const [filing, setFiling] = useState(false);
+  const [filed, setFiled] = useState(false);
+  const [fileErr, setFileErr] = useState<string | null>(null);
   const letterRef = useRef<HTMLTextAreaElement>(null);
 
   const typeLabel = BARRIER_TYPES.find((t) => t.id === type)?.label ?? "";
@@ -125,6 +133,24 @@ Thank you for your time,
     }
   }
 
+  async function fileWithSparc() {
+    if (website) return; // honeypot tripped: silently drop
+    setFiling(true); setFileErr(null);
+    const { error } = await supabase.from("access_public_reports").insert({
+      barrier_type: type || null,
+      barrier_desc: desc.trim(),
+      place_desc: placeText || null,
+      lat: place ? parseFloat(place.lat) : null,
+      lon: place ? parseFloat(place.lon) : null,
+      party_guess: party.trim() || null,
+      reporter_name: repName.trim() || null,
+      reporter_email: repEmail.trim() || null,
+    });
+    setFiling(false);
+    if (error) setFileErr("That didn't go through — please try again in a moment.");
+    else setFiled(true);
+  }
+
   const subject = `Accessibility barrier${placeText ? ` at ${placeText.split(",")[0]}` : ""} — request for a fix`;
   const mailto = `mailto:${encodeURIComponent(partyEmail.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(letter)}`;
 
@@ -143,9 +169,10 @@ Thank you for your time,
       <div className="print:hidden">
         <h1 className="font-display text-4xl font-bold text-pine">Report a barrier in your community</h1>
         <p className="mt-3 max-w-prose text-lg">
-          Tell us what&rsquo;s in the way, and leave with a ready-to-send letter.
-          Nothing you type here is saved or sent anywhere by us — the letter is
-          yours, and it goes out from your own email.
+          Tell us what&rsquo;s in the way. Add it to SPARC&rsquo;s list so the Agents of
+          Change team can take it up — or write the letter yourself, or both.
+          Only what you choose to send to SPARC is saved; the letter tool
+          stores nothing.
         </p>
 
         {/* 1 — the barrier */}
@@ -255,9 +282,50 @@ Thank you for your time,
           </div>
         </section>
 
-        {/* 4 — the letter */}
+        {/* 4 — add to SPARC's list */}
         <section aria-labelledby="s4" className="mt-10 max-w-prose">
-          <h2 id="s4" className="font-display text-2xl font-semibold text-pine">4. Your letter</h2>
+          <h2 id="s4" className="font-display text-2xl font-semibold text-pine">4. Add it to SPARC&rsquo;s list</h2>
+          {filed ? (
+            <p role="status" className="mt-3 rounded-lg bg-fern/10 p-4">
+              <strong>It&rsquo;s on the list.</strong> The Agents of Change team reviews
+              every report and decides where to take action. Thank you for
+              speaking up{repName ? `, ${repName.split(" ")[0]}` : ""}.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 max-w-prose">
+                Send this report to SPARC&rsquo;s Agents of Change team — self-advocates
+                who document barriers and write to the people responsible. Your
+                contact details are optional and only used to follow up.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="rname" className="block font-bold">Your name <span className="font-normal text-moss">(optional)</span></label>
+                  <input id="rname" value={repName} onChange={(e) => setRepName(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
+                </div>
+                <div>
+                  <label htmlFor="remail" className="block font-bold">Your email <span className="font-normal text-moss">(optional)</span></label>
+                  <input id="remail" type="email" value={repEmail} onChange={(e) => setRepEmail(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
+                </div>
+              </div>
+              <div aria-hidden="true" className="absolute left-[-9999px]">
+                <label>Website<input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} /></label>
+              </div>
+              {fileErr && <p role="alert" className="mt-3 rounded-lg bg-s_documented/10 p-3 text-sm font-semibold text-s_documented">{fileErr}</p>}
+              <button type="button" disabled={!ready || filing} onClick={fileWithSparc}
+                className="mt-4 rounded-lg bg-pine px-6 py-3 font-semibold text-white hover:bg-fern disabled:opacity-50">
+                {filing ? "Sending…" : "Send it to the team"}
+              </button>
+              {!ready && <p className="mt-2 text-sm text-moss">Describe the barrier in step 1 first.</p>}
+            </>
+          )}
+        </section>
+
+        {/* 5 — the letter */}
+        <section aria-labelledby="s5" className="mt-10 max-w-prose">
+          <h2 id="s5" className="font-display text-2xl font-semibold text-pine">5. Or write the letter yourself</h2>
 
           <fieldset className="mt-4">
             <legend className="font-bold">How should it sound?</legend>

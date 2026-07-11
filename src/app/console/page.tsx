@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useEffect } from "react";
 import { sendMagicLink, signOut, useStaff } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function ConsolePage() {
   const { session, staff, loading } = useStaff();
+  const [newReports, setNewReports] = useState<number | null>(null);
+  useEffect(() => {
+    if (!session) return;
+    supabase.from("access_public_reports")
+      .select("id", { count: "exact", head: true }).eq("status", "new")
+      .then(({ count }) => setNewReports(count ?? 0));
+  }, [session]);
 
   if (loading) {
     return (
@@ -57,6 +66,20 @@ export default function ConsolePage() {
           <p className="mt-2 text-moss">
             Document something you found in the field — photos first, a few
             questions, done. Your draft saves as you go.
+          </p>
+        </Link>
+        <Link
+          href="/console/community"
+          className="rounded-xl border border-moss/30 bg-paper p-6 hover:border-fern"
+        >
+          <h2 className="font-display text-xl font-semibold text-pine">
+            Community reports
+            {newReports !== null && newReports > 0 && (
+              <span className="ml-2 rounded-full bg-s_awaiting px-2.5 py-0.5 text-sm text-white">{newReports} new</span>
+            )}
+          </h2>
+          <p className="mt-2 text-moss">
+            Barriers flagged by the public. Take one up, or mark it handled.
           </p>
         </Link>
         <Link

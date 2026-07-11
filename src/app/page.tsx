@@ -34,6 +34,7 @@ export default function Home() {
             documenting the barriers that keep people out of Reston Town Center,
             writing to the people responsible, and publishing every step here:
             the photos, the letters, the replies, and how long change takes.
+            Found a barrier yourself? Flag it, and the team takes it from there.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
@@ -46,7 +47,7 @@ export default function Home() {
               href="/report"
               className="rounded-lg border-2 border-fern px-6 py-3 font-semibold text-fern hover:bg-fern/10"
             >
-              Report a barrier in your community
+              Report a barrier anywhere
             </Link>
           </div>
         </section>
