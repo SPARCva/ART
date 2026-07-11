@@ -98,10 +98,14 @@ export default function OnePage() {
     <>
       <header className="border-b border-moss/30 bg-paper">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-5 py-4">
-          <p className="font-display text-lg font-semibold text-pine">
-            Accessibility in Real Time
-            <span className="ml-2 font-body text-sm font-normal text-moss">SPARC · Reston Town Center</span>
-          </p>
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <a href="https://sparcsolutions.org"><img src="https://sparcsolutions.org/images/SPARC_logo.png" alt="SPARC home" className="h-10 w-auto" /></a>
+            <p className="font-display text-lg font-bold text-fern">
+              Accessibility in Real Time
+              <span className="ml-2 hidden font-body text-sm font-normal text-moss sm:inline">Reston Town Center</span>
+            </p>
+          </div>
           <nav aria-label="More">
             <ul className="flex gap-5 text-sm font-semibold">
               <li><Link href="/report" className="text-pine underline-offset-4 hover:underline">Write a letter</Link></li>
@@ -269,15 +273,6 @@ export default function OnePage() {
         </section>
       </main>
 
-      <footer className="mt-16 border-t border-moss/30 bg-paper">
-        <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-moss">
-          <p>
-            A project of <a href="https://sparcsolutions.org" className="text-fern underline underline-offset-4">SPARC</a> ·
-            Agents of Change · Map data © OpenStreetMap contributors ·{" "}
-            <a href="https://sparcsolutions.org/accessibility/" className="text-fern underline underline-offset-4">Accessibility Statement</a>
-          </p>
-        </div>
-      </footer>
     </>
   );
 }

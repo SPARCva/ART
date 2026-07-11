@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useEffect } from "react";
-import { sendMagicLink, signOut, useStaff, verifyCode } from "@/lib/auth";
+import { signInPassword, signUpPassword, signOut, useStaff } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 export default function ConsolePage() {
@@ -123,80 +123,95 @@ export default function ConsolePage() {
 }
 
 function SignIn() {
+  const [mode, setMode] = useState<"login" | "setup">("login");
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function sendIt(e?: FormEvent) {
-    e?.preventDefault();
-    setBusy(true); setError(null);
-    const { error } = await sendMagicLink(email.trim().toLowerCase());
-    setBusy(false);
-    if (error) setError(error.message);
-    else setSent(true);
-  }
-
-  async function checkCode(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    setBusy(true); setError(null);
-    const { error } = await verifyCode(email.trim().toLowerCase(), code);
+    setError(null);
+    if (mode === "setup") {
+      if (password.length < 8) { setError("Pick a password of at least 8 characters."); return; }
+      if (password !== confirm) { setError("The passwords don't match."); return; }
+    }
+    setBusy(true);
+    const { error } =
+      mode === "login"
+        ? await signInPassword(email, password)
+        : await signUpPassword(email, password);
     setBusy(false);
-    if (error) setError("That code didn't work — check for typos, or send a fresh one (codes expire after a few minutes).");
-    // success: useStaff picks up the session automatically
+    if (error) {
+      if (mode === "login" && /invalid/i.test(error.message)) {
+        setError("Wrong email or password. First time here? Use \u201cCreate my password\u201d below.");
+      } else if (mode === "setup" && /already registered/i.test(error.message)) {
+        setError("That email already has a password — log in above, or ask Erica or Andrew to help reset it.");
+      } else setError(error.message);
+    }
+    // success: useStaff picks up the session; the roster decides access.
   }
 
   return (
-    <Shell>
-      <h1 className="font-display text-3xl font-bold text-pine">Team sign-in</h1>
-      <p className="mt-2 max-w-prose">
-        No password. Enter your email and we&rsquo;ll send you a <strong>6-digit
-        code</strong> — type it here and you&rsquo;re in. The email also has a
-        sign-in link if you&rsquo;d rather tap that.
-      </p>
-
-      {!sent ? (
-        <form onSubmit={sendIt} className="mt-6 max-w-sm">
-          <label htmlFor="email" className="block font-bold">Your email</label>
-          <p className="mt-1 text-sm text-moss">The one Erica added to the team — work or personal.</p>
-          <input id="email" type="email" required autoComplete="email" value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
-          {error && <p role="alert" className="mt-3 font-semibold text-s_documented">Couldn&rsquo;t send it: {error}</p>}
+    <main id="main" className="flex min-h-[70vh] items-center justify-center px-5 py-16">
+      <div className="w-full max-w-md rounded-xl border border-moss/20 bg-paper p-8 shadow-lg">
+        <h1 className="text-center font-display text-2xl font-bold text-fern">
+          {mode === "login" ? "ART Team Login" : "Create Your Password"}
+        </h1>
+        <p className="mt-2 text-center text-sm text-moss">
+          {mode === "login"
+            ? "This area is for the SPARC Accessibility in Real Time team."
+            : "First time here? If Erica or Andrew added your email to the team, set a password and you're in."}
+        </p>
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          <div>
+            <label htmlFor="email" className="block font-bold">Email</label>
+            <input id="email" type="email" required autoComplete="email" value={email}
+              onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email"
+              className="mt-1.5 w-full rounded-lg border border-moss/40 px-4 py-3" />
+          </div>
+          <div>
+            <label htmlFor="password" className="block font-bold">Password</label>
+            <input id="password" type="password" required value={password}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={mode === "login" ? "Enter your password" : "At least 8 characters"}
+              className="mt-1.5 w-full rounded-lg border border-moss/40 px-4 py-3" />
+          </div>
+          {mode === "setup" && (
+            <div>
+              <label htmlFor="confirm" className="block font-bold">Confirm password</label>
+              <input id="confirm" type="password" required value={confirm} autoComplete="new-password"
+                onChange={(e) => setConfirm(e.target.value)}
+                className="mt-1.5 w-full rounded-lg border border-moss/40 px-4 py-3" />
+            </div>
+          )}
+          {error && <p role="alert" className="rounded-lg bg-s_documented/10 p-3 text-sm font-semibold text-s_documented">{error}</p>}
           <button type="submit" disabled={busy}
-            className="mt-4 rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-60">
-            {busy ? "Sending…" : "Email me a code"}
+            className="w-full rounded-lg bg-fern px-6 py-3 font-bold text-white hover:bg-pine disabled:opacity-60">
+            {busy ? "One moment…" : mode === "login" ? "Log In" : "Create password & log in"}
           </button>
         </form>
-      ) : (
-        <form onSubmit={checkCode} className="mt-6 max-w-sm">
-          <p role="status" className="rounded-lg bg-fern/10 p-4">
-            Sent to <strong>{email}</strong>. Give it a minute and check spam
-            if it&rsquo;s shy.
-          </p>
-          <label htmlFor="code" className="mt-5 block font-bold">The 6-digit code from the email</label>
-          <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3 text-center font-mono text-2xl tracking-[0.5em]" />
-          {error && <p role="alert" className="mt-3 font-semibold text-s_documented">{error}</p>}
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button type="submit" disabled={busy || code.length !== 6}
-              className="rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-50">
-              {busy ? "Checking…" : "Sign in"}
+        <p className="mt-5 text-center text-sm">
+          {mode === "login" ? (
+            <button type="button" onClick={() => { setMode("setup"); setError(null); }}
+              className="font-semibold text-fern underline underline-offset-4">
+              First time? Create my password
             </button>
-            <button type="button" disabled={busy} onClick={() => sendIt()}
-              className="rounded-lg border-2 border-fern px-5 py-3 font-semibold text-fern hover:bg-fern/10 disabled:opacity-60">
-              Send a fresh one
+          ) : (
+            <button type="button" onClick={() => { setMode("login"); setError(null); }}
+              className="font-semibold text-fern underline underline-offset-4">
+              Back to log in
             </button>
-          </div>
-          <p className="mt-4 text-sm text-moss">
-            Tapping the link in the email works too — it opens the console
-            directly. The code is just the sure-fire way on any device.
-          </p>
-        </form>
-      )}
-    </Shell>
+          )}
+        </p>
+        <p className="mt-3 text-center text-xs text-moss">
+          Any email works — work or personal — as long as it&rsquo;s on the team list.
+          Forgot your password? Ask Erica or Andrew.
+        </p>
+      </div>
+    </main>
   );
 }
 

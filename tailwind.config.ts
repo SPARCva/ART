@@ -10,12 +10,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pine:  "#20372B", // deep green — headings, primary text on light
-        moss:  "#5C7263", // secondary text, rules
-        fern:  "#256B43", // primary action (4.5:1+ on mist)
-        mist:  "#F1F4F0", // page background (green-tinted, not cream)
-        paper: "#FFFFFF", // cards, documents
-        ink:   "#1C2420", // body text
+        pine:  "#002B50", // SPARC dark navy — headings, footer
+        moss:  "#5A6B7A", // secondary text (navy-gray, AA on white)
+        fern:  "#00539B", // SPARC royal blue — primary actions/links
+        kelly: "#4CBB17", // SPARC kelly green — decorative accents only
+        kellydark: "#3a9212",
+        mist:  "#F5F5F5", // SPARC soft gray page background
+        paper: "#FFFFFF",
+        ink:   "#333333", // SPARC charcoal body text
         // status — used with icons + labels, never alone
         s_documented: "#5B4A9E", // violet — barrier recorded
         s_contacted:  "#0E5E6B", // teal — letter sent

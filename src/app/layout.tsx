@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Zilla_Slab, Atkinson_Hyperlegible, IBM_Plex_Mono } from "next/font/google";
+import { Montserrat, Open_Sans, IBM_Plex_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
-const display = Zilla_Slab({
-  weight: ["500", "600", "700"],
+// Matches sparcsolutions.org: Montserrat headings, Open Sans body.
+const display = Montserrat({
+  weight: ["600", "700"],
   subsets: ["latin"],
   variable: "--font-display",
 });
 
-// Designed by the Braille Institute for maximum legibility for low-vision
-// readers. Choosing it for body text is part of the project's argument.
-const body = Atkinson_Hyperlegible({
-  weight: ["400", "700"],
+const body = Open_Sans({
+  weight: ["400", "600", "700"],
   subsets: ["latin"],
   variable: "--font-body",
 });
@@ -41,6 +41,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         {children}
+        <SiteFooter />
       </body>
     </html>
   );
