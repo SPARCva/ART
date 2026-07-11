@@ -15,10 +15,26 @@ type Barrier = {
 
 function BarrierInner() {
   const id = useSearchParams().get("id");
+  const [counts, setCounts] = useState({ still: 0, gone: 0 });
+  const [voted, setVoted] = useState(false);
+  async function loadCounts(locId: string) {
+    const { data } = await supabase.from("access_barrier_checks").select("verdict").eq("location_id", locId);
+    const list = (data as { verdict: string }[]) ?? [];
+    setCounts({ still: list.filter(v => v.verdict === "still_there").length, gone: list.filter(v => v.verdict === "gone").length });
+  }
+  async function vote(verdict: "still_there" | "gone") {
+    if (!id || voted) return;
+    setVoted(true);
+    try { localStorage.setItem(`art-check-loc-${id}`, verdict); } catch {}
+    await supabase.from("access_barrier_checks").insert({ location_id: id, verdict });
+    loadCounts(id);
+  }
   const [b, setB] = useState<Barrier | null | undefined>(undefined);
 
   useEffect(() => {
     if (!id) { setB(null); return; }
+    try { if (localStorage.getItem(`art-check-loc-${id}`)) setVoted(true); } catch {}
+    loadCounts(id);
     supabase
       .from("access_locations")
       .select("id, label, status, summary, created_at, access_parties(name, org_type), access_photos(src, alt, caption, sort), access_events(when_label, occurred_on, dir, txt, sort)")
@@ -95,6 +111,21 @@ function BarrierInner() {
             ))}
           </ol>
         )}
+      </section>
+
+      <section aria-label="Is this barrier still there?" className="mt-10 max-w-prose rounded-xl border border-moss/30 bg-paper p-5">
+        <h2 className="font-display text-lg font-semibold text-pine">Been there recently? Tell us if it&rsquo;s still there.</h2>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button type="button" disabled={voted} onClick={() => vote("still_there")}
+            className="rounded-full border-2 border-s_awaiting px-4 py-1.5 text-sm font-semibold text-s_awaiting hover:bg-s_awaiting/10 disabled:opacity-60">
+            Yes, still there ({counts.still})
+          </button>
+          <button type="button" disabled={voted} onClick={() => vote("gone")}
+            className="rounded-full border-2 border-s_resolved px-4 py-1.5 text-sm font-semibold text-s_resolved hover:bg-s_resolved/10 disabled:opacity-60">
+            No, it&rsquo;s gone ({counts.gone})
+          </button>
+          {voted && <span className="text-sm text-moss">Thanks — counted.</span>}
+        </div>
       </section>
 
       <aside className="mt-14 max-w-prose rounded-xl border border-moss/30 bg-paper p-6">

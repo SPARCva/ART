@@ -254,6 +254,18 @@ function ReviewInner() {
                     Request more info
                   </button>
                 </div>
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this report and its photos permanently?")) return;
+                    setBusy(true);
+                    await supabase.from("access_submissions").delete().eq("id", id);
+                    setBusy(false);
+                    window.location.href = "/ART/console/queue";
+                  }}
+                  disabled={busy}
+                  className="mt-2 rounded-lg border border-moss/50 px-4 py-2 text-sm font-semibold text-moss hover:border-s_documented hover:text-s_documented disabled:opacity-60">
+                  Delete permanently
+                </button>
                 <button onClick={() => setStatus("declined")} disabled={busy}
                   className="mt-2 rounded-lg border border-moss/50 px-4 py-2 text-sm font-semibold text-moss hover:border-s_documented hover:text-s_documented disabled:opacity-60">
                   Decline

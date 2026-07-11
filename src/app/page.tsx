@@ -16,6 +16,7 @@ type Barrier = {
 type Report = {
   id: string; barrier_type: string | null; barrier_desc: string;
   place_desc: string | null; status: string; created_at: string;
+  still_there_count: number; gone_count: number;
 };
 
 const TYPES = [
@@ -42,7 +43,7 @@ export default function OnePage() {
   async function loadReports() {
     const { data } = await supabase
       .from("access_community_board")
-      .select("id, barrier_type, barrier_desc, place_desc, status, created_at")
+      .select("id, barrier_type, barrier_desc, place_desc, status, created_at, still_there_count, gone_count")
       .order("created_at", { ascending: false }).limit(100);
     setReports((data as Report[]) ?? []);
   }
@@ -53,6 +54,18 @@ export default function OnePage() {
       .then(({ data }) => setBarriers((data as Barrier[]) ?? []));
     loadReports();
   }, []);
+
+  const [checked, setChecked] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("art-checks") ?? "{}"); } catch { return {}; }
+  });
+  async function check(r: Report, verdict: "still_there" | "gone") {
+    if (checked[r.id]) return;
+    const next = { ...checked, [r.id]: verdict };
+    setChecked(next);
+    localStorage.setItem("art-checks", JSON.stringify(next));
+    await supabase.from("access_barrier_checks").insert({ report_id: r.id, verdict });
+    loadReports();
+  }
 
   async function submit() {
     if (website) return; // honeypot
@@ -199,6 +212,20 @@ export default function OnePage() {
                   </div>
                   <p className="mt-3 max-w-prose whitespace-pre-wrap">{r.barrier_desc}</p>
                   {r.place_desc && <p className="mt-2 text-sm text-moss">{r.place_desc}</p>}
+                  <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Is this barrier still there?">
+                    <span className="text-sm font-bold">Still there?</span>
+                    <button type="button" disabled={!!checked[r.id]} onClick={() => check(r, "still_there")}
+                      aria-pressed={checked[r.id] === "still_there"}
+                      className="rounded-full border-2 border-s_awaiting px-3 py-1 text-sm font-semibold text-s_awaiting hover:bg-s_awaiting/10 disabled:opacity-60">
+                      Yes, still there ({r.still_there_count})
+                    </button>
+                    <button type="button" disabled={!!checked[r.id]} onClick={() => check(r, "gone")}
+                      aria-pressed={checked[r.id] === "gone"}
+                      className="rounded-full border-2 border-s_resolved px-3 py-1 text-sm font-semibold text-s_resolved hover:bg-s_resolved/10 disabled:opacity-60">
+                      No, it&rsquo;s gone ({r.gone_count})
+                    </button>
+                    {checked[r.id] && <span className="text-sm text-moss">Thanks — counted.</span>}
+                  </div>
                 </li>
               ))}
             </ul>

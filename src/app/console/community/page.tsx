@@ -56,6 +56,24 @@ export default function CommunityQueue() {
     return <Shell><p><Link href="/console" className="font-semibold text-fern underline underline-offset-4">Sign in</Link> to see community reports.</p></Shell>;
 
 
+  const [editing, setEditing] = useState<string | null>(null);
+  const [eDesc, setEDesc] = useState(""); const [ePlace, setEPlace] = useState("");
+  function startEdit(r: Report) { setEditing(r.id); setEDesc(r.barrier_desc); setEPlace(r.place_desc ?? ""); }
+  async function saveEdit(r: Report) {
+    setBusyId(r.id);
+    const { error } = await supabase.from("access_public_reports")
+      .update({ barrier_desc: eDesc.trim(), place_desc: ePlace.trim() || null }).eq("id", r.id);
+    setBusyId(null);
+    if (!error) { setEditing(null); load(); }
+  }
+  async function remove(r: Report) {
+    if (!confirm("Delete this report permanently? This can't be undone.")) return;
+    setBusyId(r.id);
+    const { error } = await supabase.from("access_public_reports").delete().eq("id", r.id);
+    setBusyId(null);
+    if (!error) load();
+  }
+
   async function setStatus(r: Report, status: Report["status"]) {
     setBusyId(r.id); setErr(null);
     const { error } = await supabase.from("access_public_reports").update({ status }).eq("id", r.id);
@@ -143,7 +161,31 @@ export default function CommunityQueue() {
                   </dd>
                 </div>
               </dl>
+              {editing === r.id ? (
+                <div className="mt-3 space-y-2">
+                  <label className="block text-sm font-bold" htmlFor={`ed-${r.id}`}>Description</label>
+                  <textarea id={`ed-${r.id}`} rows={3} value={eDesc} onChange={(e) => setEDesc(e.target.value)}
+                    className="w-full rounded-lg border border-moss/50 px-3 py-2 text-sm" />
+                  <label className="block text-sm font-bold" htmlFor={`ep-${r.id}`}>Place</label>
+                  <input id={`ep-${r.id}`} value={ePlace} onChange={(e) => setEPlace(e.target.value)}
+                    className="w-full rounded-lg border border-moss/50 px-3 py-2 text-sm" />
+                  <div className="flex gap-2">
+                    <button disabled={busyId === r.id} onClick={() => saveEdit(r)}
+                      className="rounded-lg bg-fern px-4 py-2 text-sm font-semibold text-white hover:bg-pine disabled:opacity-60">Save</button>
+                    <button onClick={() => setEditing(null)}
+                      className="rounded-lg border border-moss/50 px-4 py-2 text-sm font-semibold text-moss">Cancel</button>
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
+                <button disabled={busyId === r.id} onClick={() => startEdit(r)}
+                  className="rounded-lg border border-moss/50 px-4 py-2 text-sm font-semibold text-moss hover:border-pine hover:text-pine disabled:opacity-60">
+                  Edit
+                </button>
+                <button disabled={busyId === r.id} onClick={() => remove(r)}
+                  className="rounded-lg border border-moss/50 px-4 py-2 text-sm font-semibold text-moss hover:border-s_documented hover:text-s_documented disabled:opacity-60">
+                  Delete
+                </button>
                 {r.status === "new" && (
                   <>
                     <button disabled={busyId === r.id} onClick={() => takeUp(r)}
