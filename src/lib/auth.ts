@@ -67,6 +67,10 @@ export async function sendMagicLink(email: string) {
   });
 }
 
+export async function verifyCode(email: string, code: string) {
+  return supabase.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+}
+
 export async function signOut() {
   await supabase.auth.signOut();
 }

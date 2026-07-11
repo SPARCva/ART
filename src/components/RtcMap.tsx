@@ -39,8 +39,12 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 export type MapReport = { id: string; snippet: string; lat: number | null; lon: number | null };
+export type MapPlace = { name: string; addr: string | null; lat: number; lon: number };
 
-export function RtcMap({ barriers, reports = [] }: { barriers: MapBarrier[]; reports?: MapReport[] }) {
+export function RtcMap({ barriers, reports = [], places = [], onPlacePick }: {
+  barriers: MapBarrier[]; reports?: MapReport[];
+  places?: MapPlace[]; onPlacePick?: (p: MapPlace) => void;
+}) {
   const router = useRouter();
   const [zoom, setZoom] = useState(1);
   const scroller = useRef<HTMLDivElement>(null);
@@ -75,7 +79,7 @@ export function RtcMap({ barriers, reports = [] }: { barriers: MapBarrier[]; rep
     <section aria-label="Map of documented barriers" className="mt-8">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-moss">
-          Solid pins: documented barriers · outline pins: community reports · everything is also listed below
+          Solid pins: documented barriers · outline pins: community reports · small dots: businesses and addresses — tap one to report a barrier there
         </p>
         <div className="flex gap-2" role="group" aria-label="Map zoom">
           <button type="button" onClick={zoomOut} disabled={zoom <= 1} aria-label="Zoom out"
@@ -108,6 +112,23 @@ export function RtcMap({ barriers, reports = [] }: { barriers: MapBarrier[]; rep
             className="block w-full select-none"
             draggable={false}
           />
+          {onPlacePick && places
+            .map((pl) => ({ ...pl, ...toPercent(pl.lat, pl.lon) }))
+            .filter((pl) => pl.x >= 1 && pl.x <= 99 && pl.y >= 1 && pl.y <= 99)
+            .map((pl) => (
+              <button
+                key={`${pl.name}-${pl.lat}`}
+                type="button"
+                onClick={() => onPlacePick(pl)}
+                style={{ left: `${pl.x}%`, top: `${pl.y}%` }}
+                className="group absolute -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full bg-moss/70 ring-1 ring-white hover:h-4 hover:w-4 hover:bg-fern focus-visible:h-4 focus-visible:w-4 focus-visible:bg-fern"
+              >
+                <span className="sr-only">Report a barrier at {pl.name}{pl.addr ? `, ${pl.addr}` : ""}</span>
+                <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-pine px-2 py-0.5 font-body text-xs font-semibold text-white group-hover:block group-focus-visible:block">
+                  {pl.name}
+                </span>
+              </button>
+            ))}
           {reports
             .filter((r): r is MapReport & { lat: number; lon: number } => r.lat != null && r.lon != null)
             .map((r) => ({ ...r, ...toPercent(r.lat, r.lon) }))

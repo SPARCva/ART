@@ -1,5 +1,5 @@
 /** Projection box for public/rtc-basemap.svg — MUST match scripts/rtc_basemap.py */
-export const RTC_BOX = { west: -77.3608, east: -77.354, south: 38.9572, north: 38.9612 };
+export const RTC_BOX = { west: -77.3672, east: -77.3512, south: 38.9526, north: 38.964 };
 
 /** lat/lon -> percentage position on the basemap (0-100). */
 export function toPercent(lat: number, lon: number) {

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { RtcMap } from "@/components/RtcMap";
 import { MapPicker } from "@/components/MapPicker";
+import type { MapPlace } from "@/components/RtcMap";
+import PLACES from "@/data/places.json";
 import { StatusBadge } from "@/components/StatusBadge";
 
 /** ONE page: the map of documented barriers, a form to add what you found,
@@ -125,6 +127,14 @@ export default function OnePage() {
         ) : (
           <RtcMap
             barriers={barriers}
+            places={PLACES as MapPlace[]}
+            onPlacePick={(pl) => {
+              setPlace(pl.addr ? `${pl.name}, ${pl.addr}` : pl.name);
+              setSpot({ lat: pl.lat, lon: pl.lon });
+              setSent(false);
+              document.getElementById("add")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              setTimeout(() => document.getElementById("bdesc")?.focus(), 450);
+            }}
             reports={(reports ?? []).map((r) => ({
               id: r.id,
               snippet: (r.place_desc || r.barrier_desc).slice(0, 60),
@@ -152,6 +162,11 @@ export default function OnePage() {
         {/* SUBMIT */}
         <section aria-labelledby="add-h" className="mt-14 max-w-prose scroll-mt-6" id="add">
           <h2 id="add-h" className="font-display text-2xl font-semibold text-pine">Found a barrier? Add it.</h2>
+          {place && spot && (
+            <p role="status" className="mt-2 rounded-lg bg-fern/10 px-3 py-2 text-sm font-semibold text-pine">
+              Reporting at: {place}
+            </p>
+          )}
           <p className="mt-2">
             Anyone can post — SPARC team and community alike. It appears below
             right away. Your name and email are optional and never shown.

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useEffect } from "react";
-import { sendMagicLink, signOut, useStaff } from "@/lib/auth";
+import { sendMagicLink, signOut, useStaff, verifyCode } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 export default function ConsolePage() {
@@ -125,55 +125,74 @@ export default function ConsolePage() {
 function SignIn() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const { error } = await sendMagicLink(email.trim());
+  async function sendIt(e?: FormEvent) {
+    e?.preventDefault();
+    setBusy(true); setError(null);
+    const { error } = await sendMagicLink(email.trim().toLowerCase());
     setBusy(false);
     if (error) setError(error.message);
     else setSent(true);
   }
 
+  async function checkCode(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true); setError(null);
+    const { error } = await verifyCode(email.trim().toLowerCase(), code);
+    setBusy(false);
+    if (error) setError("That code didn't work — check for typos, or send a fresh one (codes expire after a few minutes).");
+    // success: useStaff picks up the session automatically
+  }
+
   return (
     <Shell>
       <h1 className="font-display text-3xl font-bold text-pine">Team sign-in</h1>
-      {sent ? (
-        <p role="status" className="mt-4 max-w-prose rounded-lg bg-fern/10 p-4">
-          Check your email — we sent a sign-in link to <strong>{email}</strong>.
-          It works on this device or your phone.
-        </p>
-      ) : (
-        <form onSubmit={submit} className="mt-6 max-w-sm">
-          <label htmlFor="email" className="block font-bold">
-            Your SPARC email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
+      <p className="mt-2 max-w-prose">
+        No password. Enter your email and we&rsquo;ll send you a <strong>6-digit
+        code</strong> — type it here and you&rsquo;re in. The email also has a
+        sign-in link if you&rsquo;d rather tap that.
+      </p>
+
+      {!sent ? (
+        <form onSubmit={sendIt} className="mt-6 max-w-sm">
+          <label htmlFor="email" className="block font-bold">Your email</label>
+          <p className="mt-1 text-sm text-moss">The one Erica added to the team — work or personal.</p>
+          <input id="email" type="email" required autoComplete="email" value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3"
-          />
-          {error && (
-            <p role="alert" className="mt-3 font-semibold text-s_documented">
-              Couldn&rsquo;t send the link: {error}
-            </p>
-          )}
-          <button
-            type="submit"
-            disabled={busy}
-            className="mt-4 rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-60"
-          >
-            {busy ? "Sending…" : "Send me a sign-in link"}
+            className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
+          {error && <p role="alert" className="mt-3 font-semibold text-s_documented">Couldn&rsquo;t send it: {error}</p>}
+          <button type="submit" disabled={busy}
+            className="mt-4 rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-60">
+            {busy ? "Sending…" : "Email me a code"}
           </button>
-          <p className="mt-3 text-sm text-moss">
-            No password needed. Only team addresses can sign in.
+        </form>
+      ) : (
+        <form onSubmit={checkCode} className="mt-6 max-w-sm">
+          <p role="status" className="rounded-lg bg-fern/10 p-4">
+            Sent to <strong>{email}</strong>. Give it a minute and check spam
+            if it&rsquo;s shy.
+          </p>
+          <label htmlFor="code" className="mt-5 block font-bold">The 6-digit code from the email</label>
+          <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3 text-center font-mono text-2xl tracking-[0.5em]" />
+          {error && <p role="alert" className="mt-3 font-semibold text-s_documented">{error}</p>}
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="submit" disabled={busy || code.length !== 6}
+              className="rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-50">
+              {busy ? "Checking…" : "Sign in"}
+            </button>
+            <button type="button" disabled={busy} onClick={() => sendIt()}
+              className="rounded-lg border-2 border-fern px-5 py-3 font-semibold text-fern hover:bg-fern/10 disabled:opacity-60">
+              Send a fresh one
+            </button>
+          </div>
+          <p className="mt-4 text-sm text-moss">
+            Tapping the link in the email works too — it opens the console
+            directly. The code is just the sure-fire way on any device.
           </p>
         </form>
       )}
