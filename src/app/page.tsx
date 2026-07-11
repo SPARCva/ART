@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { RtcMap } from "@/components/RtcMap";
+import { MapPicker } from "@/components/MapPicker";
 import { StatusBadge } from "@/components/StatusBadge";
 
 /** ONE page: the map of documented barriers, a form to add what you found,
@@ -15,7 +16,8 @@ type Barrier = {
 };
 type Report = {
   id: string; barrier_type: string | null; barrier_desc: string;
-  place_desc: string | null; status: string; created_at: string;
+  place_desc: string | null; lat: number | null; lon: number | null;
+  status: string; created_at: string;
   still_there_count: number; gone_count: number;
 };
 
@@ -33,6 +35,8 @@ const REPORT_STATUS: Record<string,string> = { new:"Reported", taken_up:"Taken u
 export default function OnePage() {
   const [barriers, setBarriers] = useState<Barrier[] | null>(null);
   const [reports, setReports] = useState<Report[] | null>(null);
+  const [stats, setStats] = useState<{ documented_barriers: number; community_reports: number } | null>(null);
+  const [spot, setSpot] = useState<{ lat: number; lon: number } | null>(null);
   // form
   const [type, setType] = useState(""); const [desc, setDesc] = useState("");
   const [place, setPlace] = useState(""); const [name, setName] = useState("");
@@ -43,11 +47,13 @@ export default function OnePage() {
   async function loadReports() {
     const { data } = await supabase
       .from("access_community_board")
-      .select("id, barrier_type, barrier_desc, place_desc, status, created_at, still_there_count, gone_count")
+      .select("id, barrier_type, barrier_desc, place_desc, lat, lon, status, created_at, still_there_count, gone_count")
       .order("created_at", { ascending: false }).limit(100);
     setReports((data as Report[]) ?? []);
   }
   useEffect(() => {
+    supabase.from("access_public_stats").select("*").maybeSingle()
+      .then(({ data }) => setStats(data as { documented_barriers: number; community_reports: number } | null));
     supabase.from("access_locations")
       .select("id, label, status, summary, lat, lon, x, y")
       .eq("published", true).order("updated_at", { ascending: false })
@@ -75,12 +81,14 @@ export default function OnePage() {
       barrier_type: type || null,
       barrier_desc: desc.trim(),
       place_desc: place.trim() || null,
+      lat: spot?.lat ?? null,
+      lon: spot?.lon ?? null,
       reporter_name: name.trim() || null,
       reporter_email: email.trim() || null,
     });
     setSending(false);
     if (error) { setErr("That didn't go through — try again in a moment."); return; }
-    setSent(true); setType(""); setDesc(""); setPlace("");
+    setSent(true); setType(""); setDesc(""); setPlace(""); setSpot(null);
     loadReports();
   }
 
@@ -105,12 +113,24 @@ export default function OnePage() {
         <h1 className="max-w-prose font-display text-3xl font-bold leading-tight text-pine sm:text-4xl">
           The barriers in Reston Town Center — and the steps taken to fix them.
         </h1>
+        <p className="mt-3 font-display text-lg font-semibold text-pine" aria-live="polite">
+          {stats
+            ? `${stats.documented_barriers + stats.community_reports} barriers identified so far — ${stats.documented_barriers} documented by the team, ${stats.community_reports} reported by the community.`
+            : "\u00A0"}
+        </p>
 
         {/* THE MAP */}
         {barriers === null ? (
           <p role="status" className="mt-8 text-moss">Loading the map…</p>
         ) : (
-          <RtcMap barriers={barriers} />
+          <RtcMap
+            barriers={barriers}
+            reports={(reports ?? []).map((r) => ({
+              id: r.id,
+              snippet: (r.place_desc || r.barrier_desc).slice(0, 60),
+              lat: r.lat, lon: r.lon,
+            }))}
+          />
         )}
         {barriers && barriers.length > 0 && (
           <ul className="mt-6 space-y-3">
@@ -162,6 +182,7 @@ export default function OnePage() {
                 placeholder="Business name, address, or landmark"
                 className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3" />
             </div>
+            <MapPicker value={spot} onChange={setSpot} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="bname" className="block font-bold">Your name <span className="font-normal text-moss">(optional, never shown)</span></label>
@@ -198,7 +219,7 @@ export default function OnePage() {
           ) : (
             <ul className="mt-6 space-y-4">
               {reports.map((r) => (
-                <li key={r.id} className="rounded-xl border border-moss/30 bg-paper p-5">
+                <li key={r.id} id={`report-${r.id}`} tabIndex={-1} className="rounded-xl border border-moss/30 bg-paper p-5 scroll-mt-4 focus:outline-3 focus:outline-fern">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     {r.barrier_type && (
                       <span className="rounded-full bg-fern/15 px-3 py-0.5 text-sm font-bold text-pine">

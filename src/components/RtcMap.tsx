@@ -38,7 +38,9 @@ const STATUS_TEXT: Record<string, string> = {
   resolved: "Resolved",
 };
 
-export function RtcMap({ barriers }: { barriers: MapBarrier[] }) {
+export type MapReport = { id: string; snippet: string; lat: number | null; lon: number | null };
+
+export function RtcMap({ barriers, reports = [] }: { barriers: MapBarrier[]; reports?: MapReport[] }) {
   const router = useRouter();
   const [zoom, setZoom] = useState(1);
   const scroller = useRef<HTMLDivElement>(null);
@@ -73,8 +75,7 @@ export function RtcMap({ barriers }: { barriers: MapBarrier[] }) {
     <section aria-label="Map of documented barriers" className="mt-8">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-moss">
-          {pins.length} pinned barrier{pins.length === 1 ? "" : "s"} · every pin is
-          also in the list below
+          Solid pins: documented barriers · outline pins: community reports · everything is also listed below
         </p>
         <div className="flex gap-2" role="group" aria-label="Map zoom">
           <button type="button" onClick={zoomOut} disabled={zoom <= 1} aria-label="Zoom out"
@@ -107,6 +108,28 @@ export function RtcMap({ barriers }: { barriers: MapBarrier[] }) {
             className="block w-full select-none"
             draggable={false}
           />
+          {reports
+            .filter((r): r is MapReport & { lat: number; lon: number } => r.lat != null && r.lon != null)
+            .map((r) => ({ ...r, ...toPercent(r.lat, r.lon) }))
+            .filter((r) => r.x >= 0 && r.x <= 100 && r.y >= 0 && r.y <= 100)
+            .map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById(`report-${r.id}`);
+                  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  (el as HTMLElement | null)?.focus();
+                }}
+                style={{ left: `${r.x}%`, top: `${r.y}%` }}
+                className="group absolute -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full border-[3px] border-pine bg-paper shadow hover:bg-fern/20 focus-visible:bg-fern/20"
+              >
+                <span className="sr-only">Community report: {r.snippet}. Jump to it on the board.</span>
+                <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-full z-10 mt-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-pine px-2.5 py-1 font-body text-xs font-semibold text-white group-hover:block group-focus-visible:block">
+                  {r.snippet}
+                </span>
+              </button>
+            ))}
           {pins.map((p) => (
             <button
               key={p.id}

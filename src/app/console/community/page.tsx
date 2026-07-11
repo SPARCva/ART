@@ -40,13 +40,27 @@ export default function CommunityQueue() {
   const [editing, setEditing] = useState<string | null>(null);
   const [eDesc, setEDesc] = useState(""); const [ePlace, setEPlace] = useState("");
 
+  const [checks, setChecks] = useState<Record<string, { verdict: string; created_at: string }[]>>({});
   async function load() {
     const { data } = await supabase
       .from("access_public_reports")
       .select("*")
       .eq("status", tab)
       .order("created_at", { ascending: false });
-    setReports((data as Report[]) ?? []);
+    const rows = (data as Report[]) ?? [];
+    setReports(rows);
+    if (rows.length) {
+      const { data: cs } = await supabase
+        .from("access_barrier_checks")
+        .select("report_id, verdict, created_at")
+        .in("report_id", rows.map((r) => r.id))
+        .order("created_at", { ascending: false });
+      const grouped: Record<string, { verdict: string; created_at: string }[]> = {};
+      for (const c of (cs as { report_id: string; verdict: string; created_at: string }[]) ?? []) {
+        (grouped[c.report_id] ??= []).push(c);
+      }
+      setChecks(grouped);
+    } else setChecks({});
   }
   useEffect(() => {
     if (session) load();
@@ -161,6 +175,32 @@ export default function CommunityQueue() {
                   </dd>
                 </div>
               </dl>
+              {(() => {
+                const cs = checks[r.id] ?? [];
+                const still = cs.filter((c) => c.verdict === "still_there").length;
+                const gone = cs.filter((c) => c.verdict === "gone").length;
+                const hidden = gone > still;
+                return cs.length > 0 || hidden ? (
+                  <div className="mt-3 rounded-lg bg-mist p-3 text-sm">
+                    <p className="font-bold">
+                      Community: {still} say still there · {gone} say gone
+                      {hidden && <span className="ml-2 rounded-full bg-s_documented/15 px-2 py-0.5 font-bold text-s_documented">hidden from the public board</span>}
+                    </p>
+                    {cs.length > 0 && (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer font-semibold text-moss">Full history ({cs.length})</summary>
+                        <ul className="mt-2 space-y-1">
+                          {cs.map((c, i) => (
+                            <li key={i} className="font-mono text-xs text-moss">
+                              {new Date(c.created_at).toLocaleString()} — {c.verdict === "still_there" ? "still there" : "gone"}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </div>
+                ) : null;
+              })()}
               {editing === r.id ? (
                 <div className="mt-3 space-y-2">
                   <label className="block text-sm font-bold" htmlFor={`ed-${r.id}`}>Description</label>

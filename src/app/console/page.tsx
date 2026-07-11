@@ -105,6 +105,18 @@ export default function ConsolePage() {
               : "Review new reports, request info, and merge them into the public record."}
           </p>
         </Link>
+        {staff.role !== "contributor" && (
+          <Link href="/console/import" className="rounded-xl border border-moss/30 bg-paper p-6 hover:border-fern">
+            <h2 className="font-display text-xl font-semibold text-pine">Import barriers</h2>
+            <p className="mt-2 text-moss">Bulk-upload barriers you&rsquo;ve already collected from a spreadsheet (CSV).</p>
+          </Link>
+        )}
+        {staff.role === "admin" && (
+          <Link href="/console/team" className="rounded-xl border border-moss/30 bg-paper p-6 hover:border-fern">
+            <h2 className="font-display text-xl font-semibold text-pine">Team</h2>
+            <p className="mt-2 text-moss">Add team members with any email, set roles, remove access.</p>
+          </Link>
+        )}
       </div>
     </Shell>
   );
