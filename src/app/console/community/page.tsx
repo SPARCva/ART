@@ -55,15 +55,6 @@ export default function CommunityQueue() {
   if (!session || !staff)
     return <Shell><p><Link href="/console" className="font-semibold text-fern underline underline-offset-4">Sign in</Link> to see community reports.</p></Shell>;
 
-  async function toggleShown(r: Report) {
-    setBusyId(r.id);
-    const next = !r.shown_publicly;
-    const { error } = await supabase.from("access_public_reports")
-      .update({ shown_publicly: next, shown_at: next ? new Date().toISOString() : null })
-      .eq("id", r.id);
-    setBusyId(null);
-    if (!error) load();
-  }
 
   async function setStatus(r: Report, status: Report["status"]) {
     setBusyId(r.id); setErr(null);
@@ -153,13 +144,6 @@ export default function CommunityQueue() {
                 </div>
               </dl>
               <div className="mt-4 flex flex-wrap gap-2">
-                <button disabled={busyId === r.id} onClick={() => toggleShown(r)}
-                  aria-pressed={!!r.shown_publicly}
-                  className={r.shown_publicly
-                    ? "rounded-lg bg-pine px-4 py-2 text-sm font-semibold text-white hover:bg-fern disabled:opacity-60"
-                    : "rounded-lg border-2 border-pine px-4 py-2 text-sm font-semibold text-pine hover:bg-pine/10 disabled:opacity-60"}>
-                  {r.shown_publicly ? "Shown on the public board ✓ (hide)" : "Show on the public board"}
-                </button>
                 {r.status === "new" && (
                   <>
                     <button disabled={busyId === r.id} onClick={() => takeUp(r)}

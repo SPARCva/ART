@@ -19,6 +19,8 @@ jobs:
         run: |
           git clone --depth 1 "https://x-access-token:${PUSH_TOKEN}@github.com/SPARCva/sparcwebsite" site
           rm -rf site/ART && mkdir site/ART && cp -r out/* site/ART/
+          mkdir -p site/art
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/ART/"><link rel="canonical" href="https://sparcsolutions.org/ART/"><title>Redirecting…</title><p><a href="/ART/">Accessibility in Real Time</a></p>' > site/art/index.html
           touch site/.nojekyll
           cd site
           git config user.name "art-deploy-bot"

@@ -376,7 +376,7 @@ Thank you for your time,
               </div>
               {fileErr && <p role="alert" className="mt-3 rounded-lg bg-s_documented/10 p-3 text-sm font-semibold text-s_documented">{fileErr}</p>}
               <p className="mt-3 text-sm text-moss">
-                Your report may appear on our public community board — your
+                Your report appears right away on the public community board — your
                 name and email are never shown, only the barrier itself.
               </p>
               <button type="button" disabled={!ready || filing} onClick={fileWithSparc}
