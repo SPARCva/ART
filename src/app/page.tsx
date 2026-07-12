@@ -302,7 +302,7 @@ export default function OnePage() {
               <p className="mt-1 text-sm text-moss">Show the barrier — snap one with your phone or upload from your device. Location data is stripped automatically.</p>
               <label htmlFor="bphotos" className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-moss/50 bg-paper px-5 py-3 font-semibold text-fern hover:border-fern">
                 + Add photos
-                <input id="bphotos" ref={fileInputRef} type="file" accept="image/*" multiple capture="environment"
+                <input id="bphotos" ref={fileInputRef} type="file" accept="image/*" multiple
                   className="sr-only" onChange={(e) => addPhotos(e.target.files)} />
               </label>
               {photos.length > 0 && (
