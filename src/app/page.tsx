@@ -338,7 +338,7 @@ export default function OnePage() {
               className="rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-60">
               {sending ? "Posting…" : "Post the barrier"}
             </button>
-            <p className="text-sm text-moss">
+            <p className="text-base text-pine sm:text-lg">
               Want to send a letter about it too? <Link href="/report" className="font-semibold text-fern underline underline-offset-4">We&rsquo;ll help you write one.</Link>
             </p>
           </div>
