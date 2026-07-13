@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 
 type Barrier = {
   id: string; label: string; status: string; summary: string | null; created_at: string;
+  removed_at: string | null;
   access_parties: { name: string; org_type: string | null } | { name: string; org_type: string | null }[] | null;
   access_photos: { src: string; alt: string; caption: string | null; sort: number }[] | null;
   access_events: { when_label: string; occurred_on: string | null; dir: string; txt: string; sort: number }[] | null;
@@ -37,7 +38,7 @@ function BarrierInner() {
     loadCounts(id);
     supabase
       .from("access_locations")
-      .select("id, label, status, summary, created_at, access_parties(name, org_type), access_photos(src, alt, caption, sort), access_events(when_label, occurred_on, dir, txt, sort)")
+      .select("id, label, status, summary, created_at, removed_at, access_parties(name, org_type), access_photos(src, alt, caption, sort), access_events(when_label, occurred_on, dir, txt, sort)")
       .eq("id", id)
       .eq("published", true)
       .maybeSingle()
@@ -56,9 +57,10 @@ function BarrierInner() {
   const photos = (b.access_photos ?? []).slice().sort((x, y) => x.sort - y.sort);
   const events = (b.access_events ?? []).slice().sort((x, y) => x.sort - y.sort);
   const party = Array.isArray(b.access_parties) ? b.access_parties[0] : b.access_parties;
+  const removed = !!b.removed_at || b.status === "resolved";
   const firstContact = events.find((e) => /sent|letter|contact/i.test(e.dir))?.occurred_on;
   const daysWaiting =
-    firstContact && b.status !== "resolved"
+    firstContact && !removed
       ? Math.floor((Date.now() - new Date(firstContact).getTime()) / 86400000)
       : null;
 
@@ -70,6 +72,12 @@ function BarrierInner() {
           <span className="font-mono text-sm text-moss">{daysWaiting} day{daysWaiting === 1 ? "" : "s"} since first contact</span>
         )}
       </div>
+      {removed && (
+        <p role="status" className="mt-4 flex items-center gap-2 rounded-xl border-2 border-s_resolved bg-s_resolved/10 px-4 py-3 font-semibold text-s_resolved">
+          <span aria-hidden="true">✓</span>
+          This barrier has been removed{b.removed_at ? ` — ${new Date(b.removed_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}` : ""}.
+        </p>
+      )}
       <h1 className="mt-3 font-display text-4xl font-bold text-pine">{b.label}</h1>
       {party?.name && (
         <p className="mt-2 text-moss">
@@ -97,7 +105,7 @@ function BarrierInner() {
       )}
 
       <section aria-labelledby="trail-h" className="mt-12 max-w-prose">
-        <h2 id="trail-h" className="font-display text-2xl font-semibold text-pine">The paper trail</h2>
+        <h2 id="trail-h" className="font-display text-2xl font-semibold text-pine">Steps taken to remove this barrier</h2>
         {events.length === 0 ? (
           <p className="mt-3 text-moss">Steps will appear here as the team takes them.</p>
         ) : (

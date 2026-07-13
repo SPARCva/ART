@@ -13,6 +13,7 @@ type Report = {
   status: string;
   created_at: string;
   photo_paths: string[] | null;
+  linked_location_id: string | null;
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -34,7 +35,7 @@ export default function CommunityBoard() {
   useEffect(() => {
     supabase
       .from("access_community_board")
-      .select("id, barrier_type, barrier_desc, place_desc, status, created_at, photo_paths")
+      .select("id, barrier_type, barrier_desc, place_desc, status, created_at, photo_paths, linked_location_id")
       .order("created_at", { ascending: false })
       .limit(200)
       .then(({ data }) => setReports((data as Report[]) ?? []));
@@ -75,6 +76,14 @@ export default function CommunityBoard() {
               </div>
               <p className="mt-3 max-w-prose whitespace-pre-wrap">{r.barrier_desc}</p>
               {r.place_desc && <p className="mt-2 text-sm text-moss">{r.place_desc}</p>}
+              {r.linked_location_id && (
+                <p className="mt-3">
+                  <Link href={`/barrier?id=${r.linked_location_id}`}
+                    className="inline-flex items-center gap-1 font-semibold text-fern underline underline-offset-4">
+                    See the team&rsquo;s progress on this barrier →
+                  </Link>
+                </p>
+              )}
               {r.photo_paths && r.photo_paths.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-3">
                   {r.photo_paths.map((path, i) => (

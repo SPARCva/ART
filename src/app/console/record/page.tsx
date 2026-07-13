@@ -7,16 +7,19 @@ import { supabase } from "@/lib/supabase";
 import { useStaff } from "@/lib/auth";
 import { uploadPhoto } from "@/lib/images";
 import { fromPercent, toPercent } from "@/lib/geo";
+import { StatusBadge } from "@/components/StatusBadge";
 
 type Party = { id: string; name: string };
 type Photo = { id?: string; src: string; alt: string; caption: string | null; sort: number; uploading?: boolean };
 type Ev = { id?: string; when_label: string; occurred_on: string | null; dir: string; txt: string; sort: number };
 
+// The team moves a barrier through these while it's still open. "Removed"
+// isn't in this list — it's the checkbox below, which stores status
+// 'resolved' plus a removed_at date.
 const STATUSES = [
   ["documented", "Documented"],
   ["contacted", "Letter sent"],
   ["awaiting", "Awaiting response"],
-  ["resolved", "Resolved"],
 ] as const;
 
 function RecordInner() {
@@ -29,6 +32,8 @@ function RecordInner() {
   const [label, setLabel] = useState("");
   const [summary, setSummary] = useState("");
   const [status, setStatus] = useState<string>("documented");
+  const [removed, setRemoved] = useState(false);       // "this barrier has been removed"
+  const [removedAt, setRemovedAt] = useState<string | null>(null);
   const [published, setPublished] = useState(isNew); // new barriers publish on save — no approval step
   const [parties, setParties] = useState<Party[]>([]);
   const [partyId, setPartyId] = useState("");
@@ -51,7 +56,10 @@ function RecordInner() {
       const { data: b } = await supabase.from("access_locations")
         .select("*").eq("id", routeId).maybeSingle();
       if (!b) { setErr("Barrier not found (or you don't have access)."); return; }
-      setLabel(b.label ?? ""); setSummary(b.summary ?? ""); setStatus(b.status ?? "documented");
+      setLabel(b.label ?? ""); setSummary(b.summary ?? "");
+      setStatus(b.status === "resolved" ? "documented" : (b.status ?? "documented"));
+      setRemoved(!!b.removed_at || b.status === "resolved");
+      setRemovedAt(b.removed_at ?? null);
       setPublished(!!b.published); setPartyId(b.party_id ?? "");
       setLat(b.lat != null ? String(b.lat) : ""); setLon(b.lon != null ? String(b.lon) : "");
       const { data: ph } = await supabase.from("access_photos")
@@ -96,16 +104,22 @@ function RecordInner() {
         setParties((ps) => [...ps, { id: data.id, name: newParty.trim() }].sort((a, b) => a.name.localeCompare(b.name)));
         setPartyId(data.id); setNewParty("");
       }
+      // "Removed" is the resolved state; keep an as-of date so the public
+      // page can say when it came down. Preserve the original date if it
+      // was already marked removed.
+      const nextRemovedAt = removed ? (removedAt ?? new Date().toISOString()) : null;
       const fields = {
         label: label.trim(),
         summary: summary.trim() || null,
-        status,
+        status: removed ? "resolved" : status,
+        removed_at: nextRemovedAt,
         party: parties.find((p) => p.id === pid)?.name ?? newParty.trim() ?? "To be determined",
         party_id: pid,
         lat: lat ? parseFloat(lat) : null,
         lon: lon ? parseFloat(lon) : null,
         ...(next ?? {}),
       };
+      setRemovedAt(nextRemovedAt);
       let bid = id;
       if (!bid) {
         // New barriers are public immediately — no separate approval step.
@@ -219,6 +233,22 @@ function RecordInner() {
             </div>
           </div>
 
+          <div className={`rounded-xl border p-4 ${removed ? "border-s_resolved bg-s_resolved/10" : "border-moss/30 bg-paper"}`}>
+            <label htmlFor="removed-check" className="flex items-center gap-3 font-bold text-pine">
+              <input id="removed-check" type="checkbox" checked={removed}
+                onChange={(e) => setRemoved(e.target.checked)}
+                className="h-5 w-5 shrink-0 accent-s_resolved" />
+              This barrier has been removed
+            </label>
+            <p className="mt-2 text-sm text-moss">
+              Tick this once the barrier is gone. It marks the barrier
+              <strong> Resolved</strong> and shows a &ldquo;removed&rdquo; note on the public page.
+              {removed && removedAt && (
+                <> Removed {new Date(removedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.</>
+              )}
+            </p>
+          </div>
+
           <fieldset>
             <legend className="font-bold">Pin on the map</legend>
             <p className="mt-1 text-sm text-moss">Click the map to place it, or type coordinates.</p>
@@ -277,11 +307,12 @@ function RecordInner() {
 
           <section aria-labelledby="ev-h">
             <div className="flex items-baseline justify-between">
-              <h2 id="ev-h" className="font-display text-xl font-semibold text-pine">The paper trail</h2>
+              <h2 id="ev-h" className="font-display text-xl font-semibold text-pine">Steps taken to remove this barrier</h2>
               <button type="button"
                 onClick={() => setEvents((es) => [...es, { when_label: "", occurred_on: null, dir: "", txt: "", sort: es.length }])}
                 className="text-sm font-semibold text-fern underline underline-offset-4">+ Add a step</button>
             </div>
+            <p className="mt-1 text-sm text-moss">Every letter, call, meeting, or fix — each one shows on the public page as the record of what the team did.</p>
             <ul className="mt-3 space-y-3">
               {events.map((ev, i) => (
                 <li key={i} className="rounded-xl border border-moss/30 bg-paper p-3">
@@ -346,10 +377,129 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 
+type ListRow = {
+  id: string; label: string; status: string; published: boolean;
+  removed_at: string | null; updated_at: string;
+  access_parties: { name: string } | { name: string }[] | null;
+  access_events: { count: number }[] | null;
+  access_photos: { count: number }[] | null;
+};
+
+function RecordList() {
+  const { session, staff, loading } = useStaff();
+  const [rows, setRows] = useState<ListRow[] | null>(null);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from("access_locations")
+      .select("id, label, status, published, removed_at, updated_at, access_parties(name), access_events(count), access_photos(count)")
+      .order("updated_at", { ascending: false })
+      .then(({ data }) => setRows((data as ListRow[]) ?? []));
+  }, [session]);
+
+  if (loading) return <ListShell><p role="status" className="text-moss">Loading…</p></ListShell>;
+  if (!session || !staff)
+    return <ListShell><p><Link href="/console" className="font-semibold text-fern underline underline-offset-4">Sign in</Link> to see the record.</p></ListShell>;
+
+  const filtered = (rows ?? []).filter((r) =>
+    !q.trim() || r.label.toLowerCase().includes(q.trim().toLowerCase()));
+
+  return (
+    <ListShell>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl font-bold text-pine">Barrier removal tracker</h1>
+        <Link href="/console/record?id=new"
+          className="rounded-lg bg-fern px-5 py-2.5 font-semibold text-white hover:bg-pine">
+          + New barrier
+        </Link>
+      </div>
+      <p className="mt-2 max-w-prose text-moss">
+        Every barrier the team has documented. Open one to record the steps
+        you&rsquo;ve taken to remove it, add photos, or mark it removed. Published
+        barriers appear on the public map and record.
+      </p>
+
+      <div className="mt-6 max-w-md">
+        <label htmlFor="rq" className="sr-only">Search barriers by name</label>
+        <input id="rq" value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="Search by name…"
+          className="w-full rounded-lg border border-moss/50 bg-paper px-4 py-2.5" />
+      </div>
+
+      {rows === null ? (
+        <p role="status" className="mt-8 text-moss">Loading the record…</p>
+      ) : rows.length === 0 ? (
+        <p className="mt-8 max-w-prose rounded-xl border border-moss/30 bg-paper p-6 text-moss">
+          No barriers yet. <Link href="/console/record?id=new" className="font-semibold text-fern underline underline-offset-4">Add the first one</Link>, take one up from{" "}
+          <Link href="/console/community" className="font-semibold text-fern underline underline-offset-4">community reports</Link>, or{" "}
+          <Link href="/console/import" className="font-semibold text-fern underline underline-offset-4">import a spreadsheet</Link>.
+        </p>
+      ) : filtered.length === 0 ? (
+        <p className="mt-8 text-moss">No barriers match &ldquo;{q}&rdquo;.</p>
+      ) : (
+        <ul className="mt-8 space-y-3">
+          {filtered.map((r) => {
+            const party = Array.isArray(r.access_parties) ? r.access_parties[0] : r.access_parties;
+            const steps = r.access_events?.[0]?.count ?? 0;
+            const photos = r.access_photos?.[0]?.count ?? 0;
+            const isRemoved = !!r.removed_at || r.status === "resolved";
+            return (
+              <li key={r.id} className="rounded-xl border border-moss/30 bg-paper p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={r.status} />
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${r.published ? "bg-fern text-white" : "border border-moss/50 text-moss"}`}>
+                    {r.published ? "PUBLISHED" : "DRAFT"}
+                  </span>
+                  {isRemoved && (
+                    <span className="rounded-full bg-s_resolved/15 px-2.5 py-0.5 text-xs font-bold text-s_resolved">REMOVED</span>
+                  )}
+                </div>
+                <h2 className="mt-2 font-display text-xl font-semibold text-pine">{r.label}</h2>
+                <p className="mt-1 text-sm text-moss">
+                  {party?.name ? <>Responsible: {party.name} · </> : null}
+                  {steps} step{steps === 1 ? "" : "s"} · {photos} photo{photos === 1 ? "" : "s"}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-4">
+                  <Link href={`/console/record?id=${r.id}`}
+                    className="font-semibold text-fern underline underline-offset-4">
+                    Track steps &amp; edit →
+                  </Link>
+                  {r.published && (
+                    <Link href={`/barrier?id=${r.id}`}
+                      className="font-semibold text-fern underline underline-offset-4">
+                      View public page ↗
+                    </Link>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </ListShell>
+  );
+}
+
+function ListShell({ children }: { children: React.ReactNode }) {
+  return (
+    <main id="main" className="mx-auto max-w-5xl px-5 py-10">
+      <p className="mb-6"><Link href="/console" className="text-sm font-semibold text-fern underline underline-offset-4">← Team console</Link></p>
+      {children}
+    </main>
+  );
+}
+
+function RecordRouter() {
+  const routeId = useSearchParams().get("id") ?? "";
+  return routeId ? <RecordInner /> : <RecordList />;
+}
+
 export default function RecordPage() {
   return (
     <Suspense fallback={<main id="main" className="mx-auto max-w-5xl px-5 py-10"><p role="status" className="text-moss">Loading…</p></main>}>
-      <RecordInner />
+      <RecordRouter />
     </Suspense>
   );
 }
