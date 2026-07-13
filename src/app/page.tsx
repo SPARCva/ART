@@ -21,6 +21,7 @@ type Report = {
   status: string; created_at: string;
   still_there_count: number; gone_count: number;
   photo_paths: string[] | null;
+  linked_location_id: string | null;
 };
 type Geo = { display_name: string; lat: string; lon: string };
 type Pending = { file: File; preview: string };
@@ -57,7 +58,7 @@ export default function OnePage() {
   async function loadReports() {
     const { data } = await supabase
       .from("access_community_board")
-      .select("id, barrier_type, barrier_desc, place_desc, lat, lon, status, created_at, still_there_count, gone_count, photo_paths")
+      .select("id, barrier_type, barrier_desc, place_desc, lat, lon, status, created_at, still_there_count, gone_count, photo_paths, linked_location_id")
       .order("created_at", { ascending: false }).limit(100);
     setReports((data as Report[]) ?? []);
   }
@@ -378,6 +379,14 @@ export default function OnePage() {
                         </li>
                       ))}
                     </ul>
+                  )}
+                  {r.linked_location_id && (
+                    <p className="mt-3">
+                      <Link href={`/barrier?id=${r.linked_location_id}`}
+                        className="inline-flex items-center gap-1 font-semibold text-fern underline underline-offset-4">
+                        See the team&rsquo;s progress on this barrier →
+                      </Link>
+                    </p>
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Is this barrier still there?">
                     <span className="text-sm font-bold">Still there?</span>

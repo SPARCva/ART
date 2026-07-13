@@ -21,8 +21,19 @@ const FIELDS = [
   ["date", "Date documented", false],
   ["lat", "Latitude", false],
   ["lon", "Longitude", false],
+  ["photos", "Photo links (image URLs, comma-separated)", false],
+  ["photo_alt", "Photo description (for all photos in the row)", false],
 ] as const;
 type FieldKey = (typeof FIELDS)[number][0];
+
+/** Split a cell of one-or-more image URLs (comma / pipe / newline / space
+ *  separated) into a clean list of http(s) links. */
+function parsePhotoUrls(cell: string): string[] {
+  return cell
+    .split(/[\s,|]+/)
+    .map((s) => s.trim())
+    .filter((s) => /^https?:\/\/\S+/i.test(s));
+}
 
 const STATUS_MAP: Record<string, string> = {
   documented: "documented", new: "documented", open: "documented", identified: "documented",
@@ -42,6 +53,8 @@ function guessMapping(headers: string[]): Partial<Record<FieldKey, string>> {
   m.date = find("date", "documented", "found", "when");
   m.lat = find("lat");
   m.lon = find("lon", "lng", "long");
+  m.photos = find("photo", "image", "picture", "img");
+  m.photo_alt = find("alt", "caption");
   return m;
 }
 
@@ -52,7 +65,7 @@ export default function ImportPage() {
   const [map, setMap] = useState<Partial<Record<FieldKey, string>>>({});
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
-  const [result, setResult] = useState<{ ok: number; failed: { row: number; why: string }[] } | null>(null);
+  const [result, setResult] = useState<{ ok: number; photos: number; failed: { row: number; why: string }[] } | null>(null);
 
   if (loading) return <Shell><p role="status" className="text-moss">Loading…</p></Shell>;
   if (!session || !staff)
@@ -83,6 +96,7 @@ export default function ImportPage() {
     setResult(null);
     const failed: { row: number; why: string }[] = [];
     let ok = 0;
+    let photoCount = 0;
 
     // party cache: match existing (case-insensitive) or create once
     const { data: existing } = await supabase.from("access_parties").select("id, name");
@@ -135,11 +149,21 @@ export default function ImportPage() {
         txt: val(r, "summary") || label,
         sort: 0,
       });
+
+      // Photos arrive as image URLs in the CSV (one column, comma-separated).
+      const urls = parsePhotoUrls(val(r, "photos"));
+      if (urls.length) {
+        const alt = val(r, "photo_alt") || `Photo of ${label}`;
+        const { error: pe } = await supabase.from("access_photos").insert(
+          urls.map((src, j) => ({ location_id: loc.id, src, alt, caption: null, sort: j })));
+        if (pe) failed.push({ row: i + 2, why: `Barrier imported, but photos failed: ${pe.message}` });
+        else photoCount += urls.length;
+      }
       ok++;
     }
     setBusy(false);
     setProgress("");
-    setResult({ ok, failed });
+    setResult({ ok, photos: photoCount, failed });
   }
 
   return (
@@ -149,6 +173,11 @@ export default function ImportPage() {
         Upload a CSV of the barriers you&rsquo;ve already collected (export your
         spreadsheet as CSV first). Everything imports as <strong>drafts</strong> —
         nothing goes public until it&rsquo;s reviewed and published.
+      </p>
+      <p className="mt-2 max-w-prose text-sm text-moss">
+        To bring in <strong>photos</strong>, add a column of image links (URLs).
+        Put several in one cell separated by commas, and add a description
+        column so every photo has alt text.
       </p>
 
       <label className="mt-6 block max-w-prose cursor-pointer rounded-xl border-2 border-dashed border-moss/50 bg-paper p-8 text-center hover:border-fern">
@@ -210,6 +239,7 @@ export default function ImportPage() {
         <section aria-labelledby="res-h" className="mt-8 max-w-prose rounded-xl border border-moss/30 bg-paper p-5" role="status">
           <h2 id="res-h" className="font-display text-xl font-semibold text-pine">
             Imported {result.ok} of {result.ok + result.failed.length}
+            {result.photos > 0 && <> · {result.photos} photo{result.photos === 1 ? "" : "s"}</>}
           </h2>
           {result.failed.length > 0 && (
             <ul className="mt-3 space-y-1 text-sm">

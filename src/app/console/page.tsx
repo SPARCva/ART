@@ -86,10 +86,12 @@ export default function ConsolePage() {
           href="/console/record"
           className="rounded-xl border border-moss/30 bg-paper p-6 hover:border-fern"
         >
-          <h2 className="font-display text-xl font-semibold text-pine">The record</h2>
+          <h2 className="font-display text-xl font-semibold text-pine">Barrier removal tracker</h2>
           <p className="mt-2 text-moss">
-            Every barrier, draft and published. Edit details, place pins,
-            manage photos and the paper trail{staff.role !== "contributor" ? ", and publish" : ""}.
+            Every barrier, draft and published. Open one to record the steps
+            taken to remove it, add photos, mark it removed
+            {staff.role !== "contributor" ? ", and publish" : ""} — published
+            barriers show on the public map and record.
           </p>
         </Link>
         <Link
