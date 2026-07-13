@@ -329,7 +329,7 @@ export default function OnePage() {
             </div>
             <div>
               <label htmlFor="bplace" className="block font-bold text-pine">Where is it?</label>
-              <p className="mt-1 text-sm text-moss">Type an address or place name and tap Find to drop a pin — or hover the map above and click an address.</p>
+              <p className="mt-1 text-sm text-moss">Type the address or location name, then click the find button OR click on the location in the map above to drop a pin</p>
               <div className="mt-2 flex gap-2">
                 <input id="bplace" value={place}
                   onChange={(e) => { setPlace(e.target.value); setSpot(null); }}
