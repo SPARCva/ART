@@ -177,6 +177,7 @@ export default function OnePage() {
           </div>
           <nav aria-label="More">
             <ul className="flex gap-5 text-sm font-semibold">
+              <li><Link href="#partner" className="text-pine underline-offset-4 hover:underline">Partner with us</Link></li>
               <li><Link href="/report" className="text-pine underline-offset-4 hover:underline">Write a letter</Link></li>
               <li><Link href="/console" className="text-moss underline-offset-4 hover:underline">Team console</Link></li>
             </ul>
@@ -186,13 +187,40 @@ export default function OnePage() {
 
       <main id="main" className="mx-auto max-w-5xl px-5 py-10">
         <h1 className="max-w-prose font-display text-3xl font-bold leading-tight text-pine sm:text-4xl">
-          The barriers in Reston Town Center — and the steps taken to fix them.
+          Reston Town Center is a place we love — let&rsquo;s make it even better, together.
         </h1>
+        <p className="mt-4 max-w-prose text-lg leading-relaxed">
+          Accessibility in Real Time began with three of SPARC&rsquo;s Agents of Change
+          — Katherine, Numi, and Jonah — who chose Reston Town Center because it&rsquo;s
+          one of their favorite places to be. This isn&rsquo;t about pointing fingers.
+          It&rsquo;s about celebrating what already makes RTC welcoming and partnering
+          with the businesses, property teams, and neighbors who love it to make it
+          work beautifully for everyone.
+        </p>
         <p className="mt-3 font-display text-lg font-semibold text-pine" aria-live="polite">
           {stats
-            ? `${stats.documented_barriers + stats.community_reports} barriers identified so far — ${stats.documented_barriers} documented by the team, ${stats.community_reports} reported by the community.`
+            ? `${stats.documented_barriers + stats.community_reports} ways we've spotted to make Reston Town Center even more welcoming — ${stats.documented_barriers} noted by our team, ${stats.community_reports} shared by the community.`
             : "\u00A0"}
         </p>
+
+        {/* AN INVITATION, NOT A REPORT CARD */}
+        <section aria-labelledby="together-h" className="mt-8 max-w-prose rounded-2xl border border-fern/30 bg-fern/5 p-6">
+          <h2 id="together-h" className="font-display text-xl font-semibold text-pine">
+            An invitation, not a report card
+          </h2>
+          <p className="mt-2">
+            Great places are made even better by the people who care about them.
+            We share what we notice so we can work on it <em>with</em> Reston Town
+            Center — recognizing everything it already does well, and treating each
+            note below as a chance to collaborate, never a callout. If you help run,
+            own, or serve this community, we&rsquo;d love to have you in from the start.
+          </p>
+          <p className="mt-4">
+            <Link href="#partner" className="font-semibold text-fern underline underline-offset-4">
+              Partner with us →
+            </Link>
+          </p>
+        </section>
 
         {/* THE MAP */}
         {barriers === null ? (
@@ -234,24 +262,27 @@ export default function OnePage() {
 
         {/* SUBMIT */}
         <section aria-labelledby="add-h" className="mt-14 max-w-prose scroll-mt-6" id="add">
-          <h2 id="add-h" className="font-display text-2xl font-semibold text-pine">Found a barrier? Add it.</h2>
+          <h2 id="add-h" className="font-display text-2xl font-semibold text-pine">Noticed something that could work better? Share it.</h2>
           {place && spot && (
             <p role="status" className="mt-2 rounded-lg bg-fern/10 px-3 py-2 text-sm font-semibold text-pine">
               Reporting at: {place}
             </p>
           )}
           <p className="mt-2">
-            Anyone can post — SPARC team and community alike. It appears below
-            right away. Your name and email are optional and never shown.
+            Anyone can add a note — the SPARC team and community alike. It appears
+            below right away as something to work on together, and it&rsquo;s a
+            starting point for a conversation, not a complaint on file. Your name
+            and email are optional and never shown.
           </p>
           {sent && (
             <p role="status" className="mt-4 rounded-lg bg-fern/10 p-4">
-              <strong>Posted.</strong> It&rsquo;s on the board below. Thank you for speaking up.
+              <strong>Thank you.</strong> It&rsquo;s on the board below — one more way
+              we can make Reston Town Center more welcoming, together.
             </p>
           )}
           <div className="mt-5 space-y-4">
             <div>
-              <label htmlFor="btype" className="block font-bold">What kind of barrier?</label>
+              <label htmlFor="btype" className="block font-bold">What did you notice?</label>
               <select id="btype" value={type} onChange={(e) => setType(e.target.value)}
                 className="mt-2 w-full rounded-lg border border-moss/50 bg-paper px-4 py-3">
                 <option value="">Choose one (optional)</option>
@@ -337,7 +368,7 @@ export default function OnePage() {
             {err && <p role="alert" className="rounded-lg bg-s_documented/10 p-3 font-semibold text-s_documented">{err}</p>}
             <button type="button" disabled={sending} onClick={submit}
               className="rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine disabled:opacity-60">
-              {sending ? "Posting…" : "Post the barrier"}
+              {sending ? "Sharing…" : "Share it"}
             </button>
             <p className="text-base text-pine sm:text-lg">
               Want to send a letter about it too? <Link href="/report" className="font-semibold text-fern underline underline-offset-4">We&rsquo;ll help you write one.</Link>
@@ -347,7 +378,7 @@ export default function OnePage() {
 
         {/* THE BOARD */}
         <section aria-labelledby="board-h" className="mt-14">
-          <h2 id="board-h" className="font-display text-2xl font-semibold text-pine">What people have reported</h2>
+          <h2 id="board-h" className="font-display text-2xl font-semibold text-pine">What the community has noticed</h2>
           {reports === null ? (
             <p role="status" className="mt-4 text-moss">Loading…</p>
           ) : reports.length === 0 ? (
@@ -406,6 +437,22 @@ export default function OnePage() {
               ))}
             </ul>
           )}
+        </section>
+
+        {/* PARTNER WITH US */}
+        <section aria-labelledby="partner-h" id="partner" className="mt-14 max-w-prose scroll-mt-6 rounded-2xl border border-moss/30 bg-paper p-6">
+          <h2 id="partner-h" className="font-display text-2xl font-semibold text-pine">Partner with us</h2>
+          <p className="mt-3">
+            Property managers, businesses, and county partners: this works best when
+            we build it together from the start. Whether you&rsquo;d like to be
+            recognized for what you already do well, weigh in on something you see
+            here, or team up on a change — we&rsquo;d love to hear from you. No barrier
+            report required.
+          </p>
+          <a href="mailto:debi@sparcsolutions.org?subject=Partnering%20on%20Accessibility%20in%20Real%20Time"
+            className="mt-4 inline-block rounded-lg bg-fern px-6 py-3 font-semibold text-white hover:bg-pine">
+            Get in touch
+          </a>
         </section>
       </main>
 

@@ -32,9 +32,10 @@ export default function RecordPage() {
       </p>
       <h1 className="font-display text-4xl font-bold text-pine">The record</h1>
       <p className="mt-3 max-w-prose text-lg">
-        Every barrier the Agents of Change team has documented at Reston Town
-        Center, and every step taken since. Pins on the map and entries in the
-        list are the same record, two ways.
+        Barriers the Agents of Change team has documented at Reston Town Center,
+        and the steps we&rsquo;re taking — with businesses and property partners — to
+        clear them. Each entry is an open invitation to collaborate, not a verdict.
+        Pins on the map and entries in the list are the same information, two ways.
       </p>
 
       {barriers === null ? (
@@ -72,7 +73,7 @@ export default function RecordPage() {
                     </h2>
                     {b.summary && <p className="mt-2 line-clamp-2 max-w-prose">{b.summary}</p>}
                     <Link href={`/barrier?id=${b.id}`} className="mt-3 inline-block font-semibold text-fern underline underline-offset-4">
-                      Read the paper trail
+                      See the steps we&rsquo;re taking
                     </Link>
                   </div>
                 </li>
