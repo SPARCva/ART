@@ -48,9 +48,10 @@ export default function CommunityBoard() {
       </p>
       <h1 className="font-display text-4xl font-bold text-pine">Community reports</h1>
       <p className="mt-3 max-w-prose text-lg">
-        Barriers that people across the community have flagged. Reports appear
-        here right away, and reporters&rsquo; names are never shown. When the team
-        takes one up, it can become a fully documented entry on <Link href="/map" className="font-semibold text-fern underline underline-offset-4">the record</Link>.
+        Things people across the community have noticed at places they care about.
+        Notes appear here right away, framed as something to work on together, and
+        reporters&rsquo; names are never shown. When the team takes one up, it can
+        become a fully documented entry on <Link href="/map" className="font-semibold text-fern underline underline-offset-4">the record</Link> — always with an eye toward a fix, not a callout.
       </p>
 
       {reports === null ? (

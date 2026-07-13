@@ -37,13 +37,13 @@ function PartyInner() {
 
   return (
     <>
-      <p className="font-mono text-sm uppercase tracking-widest text-moss">Responsible party</p>
+      <p className="font-mono text-sm uppercase tracking-widest text-moss">Working together with</p>
       <h1 className="mt-2 font-display text-4xl font-bold text-pine">{party.name}</h1>
       {party.org_type && <p className="mt-1 text-moss">{party.org_type}</p>}
       <p className="mt-4 max-w-prose text-lg">
         {list.length} documented barrier{list.length === 1 ? "" : "s"}
         {open > 0 && <> · <strong>{open} still open</strong></>}
-        {first && <> · on the record since {new Date(first).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</>}
+        {first && <> · working on it since {new Date(first).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</>}
       </p>
       <ul className="mt-8 space-y-4">
         {list.map((b) => (

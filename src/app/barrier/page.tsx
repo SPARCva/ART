@@ -69,7 +69,7 @@ function BarrierInner() {
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status={b.status} />
         {daysWaiting !== null && (
-          <span className="font-mono text-sm text-moss">{daysWaiting} day{daysWaiting === 1 ? "" : "s"} since first contact</span>
+          <span className="font-mono text-sm text-moss">working on this for {daysWaiting} day{daysWaiting === 1 ? "" : "s"}</span>
         )}
       </div>
       {removed && (
@@ -81,7 +81,7 @@ function BarrierInner() {
       <h1 className="mt-3 font-display text-4xl font-bold text-pine">{b.label}</h1>
       {party?.name && (
         <p className="mt-2 text-moss">
-          Responsible party: <strong className="text-ink">{party.name}</strong>
+          Who can help with this: <strong className="text-ink">{party.name}</strong>
           {party.org_type ? ` (${party.org_type})` : ""}
         </p>
       )}
@@ -105,7 +105,7 @@ function BarrierInner() {
       )}
 
       <section aria-labelledby="trail-h" className="mt-12 max-w-prose">
-        <h2 id="trail-h" className="font-display text-2xl font-semibold text-pine">Steps taken to remove this barrier</h2>
+        <h2 id="trail-h" className="font-display text-2xl font-semibold text-pine">Steps we&rsquo;re taking to clear it</h2>
         {events.length === 0 ? (
           <p className="mt-3 text-moss">Steps will appear here as the team takes them.</p>
         ) : (

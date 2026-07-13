@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s · Accessibility in Real Time",
   },
   description:
-    "A public record of accessibility barriers at Reston Town Center and the steps SPARC's Agents of Change have taken to call for change.",
+    "Reston Town Center is a place SPARC's Agents of Change love. Accessibility in Real Time celebrates what already makes it welcoming and partners with the businesses, property teams, and neighbors who make it great to keep improving it for everyone.",
 };
 
 export default function RootLayout({
