@@ -197,15 +197,13 @@ export default function OnePage() {
               SPARC Agents of Change
             </span>
             <h1 className="mt-5 font-display text-3xl font-bold leading-tight sm:text-[2.7rem] sm:leading-[1.1]">
-              Reston Town Center is a place we love — let&rsquo;s make it even better, together.
+              Making Reston Town Center more accessible, together.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-white/90">
               Accessibility in Real Time began with three of SPARC&rsquo;s Agents of Change
-              — Katherine, Numi, and Jonah — who chose Reston Town Center because it&rsquo;s
-              one of their favorite places to be. This isn&rsquo;t about pointing fingers.
-              It&rsquo;s about celebrating what already makes RTC welcoming and partnering
-              with the businesses, property teams, and neighbors who love it to make it
-              work beautifully for everyone.
+              — Katherine, Numi, and Jonah — who spend time at Reston Town Center. We note
+              the accessibility barriers we find and work with the businesses, property
+              teams, and neighbors here to fix them.
             </p>
           </div>
           {/* stat pills */}
@@ -233,7 +231,7 @@ export default function OnePage() {
 
         <p className="sr-only" aria-live="polite">
           {stats
-            ? `${stats.documented_barriers + stats.community_reports} ways we've spotted to make Reston Town Center even more welcoming — ${stats.documented_barriers} noted by our team, ${stats.community_reports} shared by the community.`
+            ? `${stats.documented_barriers + stats.community_reports} accessibility barriers noted at Reston Town Center — ${stats.documented_barriers} by our team, ${stats.community_reports} by the community.`
             : "\u00A0"}
         </p>
 
@@ -244,11 +242,9 @@ export default function OnePage() {
             An invitation, not a report card
           </h2>
           <p className="mt-3 leading-relaxed">
-            Great places are made even better by the people who care about them.
             We share what we notice so we can work on it <em>with</em> Reston Town
-            Center — recognizing everything it already does well, and treating each
-            note below as a chance to collaborate, never a callout. If you help run,
-            own, or serve this community, we&rsquo;d love to have you in from the start.
+            Center. Each note below is a starting point for a fix, not a callout. If
+            you help run, own, or serve this community, we&rsquo;d like to hear from you.
           </p>
           <p className="mt-4">
             <Link href="#partner" className="font-semibold text-fern underline underline-offset-4 hover:text-pine">
@@ -313,8 +309,7 @@ export default function OnePage() {
           )}
           {sent && (
             <p role="status" className="mt-4 rounded-xl border border-kelly/30 bg-kelly/10 p-4">
-              <strong>Thank you.</strong> It&rsquo;s on the board below — one more way
-              we can make Reston Town Center more welcoming, together.
+              <strong>Thank you.</strong> It&rsquo;s on the board below.
             </p>
           )}
           <div className="card mt-5 space-y-5 p-6 sm:p-7">
@@ -483,15 +478,13 @@ export default function OnePage() {
           <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-kelly/25 blur-3xl" />
           <h2 id="partner-h" className="relative font-display text-2xl font-semibold sm:text-3xl">Partner with us</h2>
           <p className="relative mt-3 leading-relaxed text-white/90">
-            Property managers, businesses, and county partners: this works best when
-            we build it together from the start. Whether you&rsquo;d like to be
-            recognized for what you already do well, weigh in on something you see
-            here, or team up on a change — we&rsquo;d love to hear from you. No barrier
-            report required.
+            Property managers, businesses, and county partners: whether you&rsquo;d like
+            to weigh in on something you see here or team up on a change, we&rsquo;d like
+            to hear from you. No barrier report required.
           </p>
-          <a href="mailto:debi@sparcsolutions.org?subject=Partnering%20on%20Accessibility%20in%20Real%20Time"
+          <a href="mailto:debi@sparcsolutions.org?subject=Partnering%20on%20Accessibility%20in%20Real%20Time&body=Hi%20SPARC%2C%0A%0AI%27d%20like%20to%20talk%20about%20partnering%20on%20Accessibility%20in%20Real%20Time%20at%20Reston%20Town%20Center.%0A%0A"
             className="btn relative mt-5 bg-white text-pine shadow-sm hover:bg-kelly hover:text-white">
-            Get in touch
+            Partner with us
           </a>
         </section>
       </main>
