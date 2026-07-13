@@ -236,7 +236,7 @@ export default function OnePage() {
         </p>
 
         {/* AN INVITATION, NOT A REPORT CARD */}
-        <section aria-labelledby="together-h" className="mt-8 max-w-prose overflow-hidden rounded-2xl border border-fern/25 bg-fern/[0.06] p-6 sm:p-7">
+        <section aria-labelledby="together-h" className="mt-8 overflow-hidden rounded-2xl border border-fern/25 bg-fern/[0.06] p-6 sm:p-7">
           <h2 id="together-h" className="flex items-center gap-2 font-display text-xl font-semibold text-pine">
             <span aria-hidden="true" className="inline-block h-5 w-1 rounded-full bg-kelly" />
             An invitation, not a report card
@@ -293,7 +293,7 @@ export default function OnePage() {
         )}
 
         {/* SUBMIT */}
-        <section aria-labelledby="add-h" className="mt-16 max-w-prose scroll-mt-20" id="add">
+        <section aria-labelledby="add-h" className="mt-16 scroll-mt-20" id="add">
           <h2 id="add-h" className="font-display text-2xl font-semibold text-pine sm:text-3xl">Noticed something that could work better? Share it.</h2>
           <p className="mt-3 leading-relaxed">
             Anyone can add a note — the SPARC team and community alike. It appears
@@ -474,7 +474,7 @@ export default function OnePage() {
         </section>
 
         {/* PARTNER WITH US */}
-        <section aria-labelledby="partner-h" id="partner" className="relative mt-16 max-w-prose scroll-mt-20 overflow-hidden rounded-3xl border border-pine/15 bg-gradient-to-br from-pine to-fern p-7 text-white shadow-sm sm:p-9">
+        <section aria-labelledby="partner-h" id="partner" className="relative mt-16 scroll-mt-20 overflow-hidden rounded-3xl border border-pine/15 bg-gradient-to-br from-pine to-fern p-7 text-white shadow-sm sm:p-9">
           <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-kelly/25 blur-3xl" />
           <h2 id="partner-h" className="relative font-display text-2xl font-semibold sm:text-3xl">Partner with us</h2>
           <p className="relative mt-3 leading-relaxed text-white/90">
